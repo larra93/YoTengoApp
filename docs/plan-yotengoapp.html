@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plan de Implementación — YoTengoApp</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --surface: #ffffff;
+    --text: #1a202c;
+    --muted: #5b6472;
+    --border: #e2e8f0;
+    --primary: #0f766e;
+    --primary-soft: #ccfbf1;
+    --accent: #b45309;
+    --accent-soft: #fef3c7;
+    --code-bg: #0f172a;
+    --code-text: #e2e8f0;
+    --radius: 12px;
+    --shadow: 0 1px 2px rgba(15, 23, 42, .06), 0 8px 24px rgba(15, 23, 42, .06);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    font-size: 16px;
+  }
+  header.hero {
+    background: linear-gradient(135deg, #0f766e 0%, #115e59 55%, #134e4a 100%);
+    color: #fff;
+    padding: 48px 24px 40px;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+  header.hero .wrap { padding: 0; }
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    font-size: 12px;
+    font-weight: 700;
+    opacity: .8;
+    margin: 0 0 8px;
+  }
+  header.hero h1 { margin: 0 0 10px; font-size: clamp(28px, 4vw, 42px); line-height: 1.15; }
+  header.hero p { margin: 0; max-width: 760px; color: #d1fae5; }
+  .meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+  .chip {
+    display: inline-block;
+    background: rgba(255,255,255,.14);
+    border: 1px solid rgba(255,255,255,.22);
+    color: #fff;
+    border-radius: 999px;
+    padding: 5px 12px;
+    font-size: 13px;
+  }
+  main { padding: 32px 0 64px; }
+  nav.toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 22px;
+    margin-bottom: 28px;
+    box-shadow: var(--shadow);
+  }
+  nav.toc h2 { margin: 0 0 10px; font-size: 14px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  nav.toc ol { margin: 0; padding-left: 20px; columns: 2; column-gap: 32px; }
+  nav.toc li { margin: 4px 0; break-inside: avoid; }
+  nav.toc a { color: var(--primary); text-decoration: none; }
+  nav.toc a:hover { text-decoration: underline; }
+  section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 26px 28px;
+    margin-bottom: 22px;
+    box-shadow: var(--shadow);
+  }
+  h2 { margin: 0 0 14px; font-size: 24px; line-height: 1.25; color: #0f172a; }
+  h2 .num {
+    display: inline-grid;
+    place-items: center;
+    width: 30px; height: 30px;
+    margin-right: 10px;
+    border-radius: 8px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    font-size: 15px;
+    vertical-align: 2px;
+  }
+  h3 { margin: 22px 0 8px; font-size: 18px; color: #0f172a; }
+  p { margin: 10px 0; }
+  ul, ol { margin: 10px 0; padding-left: 24px; }
+  li { margin: 5px 0; }
+  .callout {
+    border-left: 4px solid var(--accent);
+    background: var(--accent-soft);
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin: 16px 0;
+    color: #78350f;
+  }
+  .callout strong { color: #92400e; }
+  .ok {
+    border-left: 4px solid var(--primary);
+    background: var(--primary-soft);
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin: 16px 0;
+    color: #134e4a;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 14.5px;
+    background: #fff;
+  }
+  th, td { border: 1px solid var(--border); padding: 9px 11px; text-align: left; vertical-align: top; }
+  th { background: #f1f5f9; color: #0f172a; font-weight: 700; }
+  tr:nth-child(even) td { background: #fbfcfd; }
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    background: #eef2f7;
+    color: #0f172a;
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: .9em;
+  }
+  pre {
+    background: var(--code-bg);
+    color: var(--code-text);
+    padding: 16px 18px;
+    border-radius: 10px;
+    overflow-x: auto;
+    font-size: 13.5px;
+    line-height: 1.55;
+    margin: 14px 0;
+  }
+  pre code { background: transparent; color: inherit; padding: 0; font-size: inherit; }
+  .badge {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .badge.p0 { background: #dcfce7; color: #166534; }
+  .badge.p1 { background: #dbeafe; color: #1e40af; }
+  .badge.p2 { background: #fef9c3; color: #854d0e; }
+  .badge.p3 { background: #ede9fe; color: #5b21b6; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+    margin: 16px 0;
+  }
+  .card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    background: #fbfcfd;
+  }
+  .card h4 { margin: 0 0 6px; font-size: 14px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .card p { margin: 0; font-size: 14.5px; }
+  details {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin: 12px 0;
+    background: #fbfcfd;
+  }
+  details summary { cursor: pointer; font-weight: 600; color: #0f172a; }
+  details[open] summary { margin-bottom: 10px; }
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    padding: 10px 24px 48px;
+  }
+  .nowrap { white-space: nowrap; }
+  @media (max-width: 720px) {
+    section { padding: 20px 18px; }
+    nav.toc ol { columns: 1; }
+    table { font-size: 13.5px; }
+  }
+  @media print {
+    body { background: #fff; font-size: 12px; }
+    header.hero { background: #0f766e !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    nav.toc { display: none; }
+    section { box-shadow: none; border-color: #cbd5e1; page-break-inside: avoid; }
+    pre { white-space: pre-wrap; }
+    a { color: inherit; text-decoration: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Plan de arquitectura y ejecución</p>
+    <h1>YoTengoApp — MVP de marketplace de demanda inversa</h1>
+    <p>Plataforma comunitaria donde los vecinos publican lo que necesitan y la comunidad responde con arriendos, préstamos o trueques con negociación directa.</p>
+    <div class="meta">
+      <span class="chip">Expo SDK 57</span>
+      <span class="chip">React Native + TypeScript</span>
+      <span class="chip">NativeWind 4.2.7</span>
+      <span class="chip">Supabase + PostGIS</span>
+      <span class="chip">TanStack Query</span>
+      <span class="chip">Carpeta: YoTengoApp</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <nav class="toc" aria-label="Índice">
+    <h2>Contenido</h2>
+    <ol>
+      <li><a href="#contexto">Contexto verificado</a></li>
+      <li><a href="#decisiones">Decisiones técnicas</a></li>
+      <li><a href="#estructura">Estructura del proyecto</a></li>
+      <li><a href="#datos">Modelo de datos</a></li>
+      <li><a href="#seguridad">RLS, RPCs y Storage</a></li>
+      <li><a href="#fases">Fases de ejecución</a></li>
+      <li><a href="#comandos">Comandos de bootstrap</a></li>
+      <li><a href="#supabase">Configuración de Supabase</a></li>
+      <li><a href="#riesgos">Riesgos y mitigaciones</a></li>
+      <li><a href="#exito">Criterio de éxito</a></li>
+    </ol>
+  </nav>
+
+  <section id="contexto">
+    <h2><span class="num">0</span>Contexto verificado del entorno</h2>
+    <ul>
+      <li>Node <code>v22.19.0</code> (compatible con Expo SDK 57), npm <code>10.9.3</code>, Git y Docker disponibles.</li>
+      <li>No hay Expo CLI ni Supabase CLI globales: se usarán <code>npx</code> y <code>supabase</code> como devDependency.</li>
+      <li><code>C:\Users\Larra\Documents\REACT</code> existe; <code>YoTengoApp</code> no existe.</li>
+      <li>La carpeta <code>REACT\trueque</code> está vacía y <strong>no</strong> se tocará.</li>
+    </ul>
+    <div class="callout">
+      <strong>Nombre asumido:</strong> carpeta y app visible <strong>YoTengoApp</strong>, slug y scheme <code>yotengoapp</code>. El nombre visible se configura en <code>app.json</code> sin afectar el código.
+    </div>
+  </section>
+
+  <section id="decisiones">
+    <h2><span class="num">1</span>Decisiones técnicas fijadas</h2>
+    <table>
+      <thead>
+        <tr><th>Área</th><th>Decisión</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Expo</td><td>SDK <strong>57</strong> (<code>default@sdk-57</code>), React Native 0.86, React 19.2, TypeScript strict</td></tr>
+        <tr><td>Navegación</td><td><strong>Expo Router</strong> con tabs: Explorar, Publicar, Negociaciones, Perfil</td></tr>
+        <tr><td>Estilos</td><td><strong>NativeWind 4.2.7</strong> + <code>tailwindcss@3</code> (pinneado, NO v4) + Reanimated 4 + worklets</td></tr>
+        <tr><td>Backend</td><td>Supabase (Postgres + PostGIS, Auth, Storage, Realtime)</td></tr>
+        <tr><td>Datos cliente</td><td><code>@supabase/supabase-js</code> 2.119 + <strong>TanStack Query 5</strong></td></tr>
+        <tr><td>Formularios</td><td>React Hook Form + Zod</td></tr>
+        <tr><td>Auth inicial</td><td>Email/password; Google OAuth en Fase 2</td></tr>
+        <tr><td>Geolocalización</td><td>Lista + filtro por distancia vía RPC PostGIS; mapa en Fase 2</td></tr>
+        <tr><td>Imágenes</td><td><code>expo-image-picker</code> + <code>expo-image</code> + Supabase Storage</td></tr>
+        <tr><td>Fechas</td><td><code>date-fns</code> con locale <code>es</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="estructura">
+    <h2><span class="num">2</span>Estructura de directorios propuesta</h2>
+    <pre><code>YoTengoApp/
+├─ app/
+│  ├─ _layout.tsx                 # Providers: QueryClient, Auth, SafeArea, Stack
+│  ├─ (auth)/
+│  │  ├─ _layout.tsx
+│  │  ├─ sign-in.tsx
+│  │  └─ sign-up.tsx
+│  ├─ auth/callback.tsx           # Confirmación email / deep link
+│  ├─ (tabs)/
+│  │  ├─ _layout.tsx              # 4 tabs + guard de sesión
+│  │  ├─ index.tsx                # Explorar Pedidos
+│  │  ├─ publish.tsx              # Publicar Necesidad
+│  │  ├─ negotiations.tsx         # Pedidos recibidos / Ofertas enviadas
+│  │  └─ profile.tsx              # Perfil + rating + logout
+│  ├─ need/[id].tsx               # Detalle + ofertas
+│  ├─ offer/[needId].tsx          # Formulario "Tengo esto"
+│  ├─ chat/[needId].tsx           # Chat post-aceptación
+│  └─ +not-found.tsx
+├─ src/
+│  ├─ api/                        # needs.ts, offers.ts, chat.ts, reviews.ts, profiles.ts, storage.ts
+│  ├─ components/
+│  │  ├─ ui/                      # Button, Input, Card, Badge, Avatar, Rating, EmptyState, Screen
+│  │  ├─ needs/                   # NeedCard, NeedFilters, NeedForm, CategoryChips
+│  │  ├─ offers/                  # OfferCard, OfferForm, OfferStatusBadge
+│  │  └─ chat/                    # MessageBubble, MessageInput
+│  ├─ features/auth/              # AuthProvider, useAuth, guards
+│  ├─ hooks/                      # useNearbyNeeds, useNeed, useOffers, useChat, useLocation...
+│  ├─ lib/                        # env.ts, supabase.ts, query-client.ts, cn.ts, dates.ts, distance.ts, query-keys.ts
+│  ├─ supabase/database.types.ts  # generado con Supabase CLI
+│  ├─ theme/tokens.ts
+│  ├─ types/                      # db.ts, domain.ts
+│  └─ validation/                 # auth.ts, need.ts, offer.ts, review.ts
+├─ supabase/
+│  ├─ config.toml
+│  ├─ migrations/
+│  │  ├─ 0001_extensions_enums.sql
+│  │  ├─ 0002_tables_indexes.sql
+│  │  ├─ 0003_functions_rls_realtime.sql
+│  │  └─ 0004_storage.sql
+│  └─ seed.sql
+├─ assets/
+├─ .env.example
+├─ AGENTS.md
+├─ README.md
+├─ app.json
+├─ babel.config.js
+├─ metro.config.js
+├─ tailwind.config.js
+├─ global.css
+├─ nativewind-env.d.ts
+├─ tsconfig.json
+└─ package.json</code></pre>
+  </section>
+
+  <section id="datos">
+    <h2><span class="num">3</span>Modelo de datos y seguridad</h2>
+
+    <h3>Extensiones y enums</h3>
+    <ul>
+      <li><code>postgis</code> en schema <code>extensions</code>; <code>pgcrypto</code> o <code>gen_random_uuid()</code>.</li>
+      <li><code>deal_type</code>: <code>'rent'</code>, <code>'loan'</code>, <code>'swap'</code>.</li>
+      <li><code>need_status</code>: <code>'open'</code>, <code>'matched'</code>, <code>'completed'</code>, <code>'cancelled'</code>.</li>
+      <li><code>offer_status</code>: <code>'pending'</code>, <code>'accepted'</code>, <code>'rejected'</code>.</li>
+    </ul>
+
+    <h3>Tablas</h3>
+    <table>
+      <thead>
+        <tr><th>Tabla</th><th>Campos principales</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>profiles</code></td>
+          <td><code>id uuid PK → auth.users</code>, <code>full_name</code>, <code>avatar_url</code>, <code>phone</code>, <code>rating_avg numeric(3,2)</code>, <code>rating_count</code>, <code>location geography(Point,4326)</code>, <code>neighborhood</code>, timestamps.</td>
+        </tr>
+        <tr>
+          <td><code>categories</code></td>
+          <td><code>id smallint identity</code>, <code>name</code>, <code>slug</code>, <code>icon</code>, <code>sort_order</code>.</td>
+        </tr>
+        <tr>
+          <td><code>needs</code></td>
+          <td><code>id uuid</code>, <code>user_id</code>, <code>title</code>, <code>description</code>, <code>category_id</code>, <code>deal_type</code>, <code>budget_or_offer_details</code>, <code>start_date</code>, <code>end_date</code>, <code>status</code>, <code>reference_image_url</code>, <code>location geography(Point,4326)</code>, <code>address_label</code>, timestamps.</td>
+        </tr>
+        <tr>
+          <td><code>offers</code></td>
+          <td><code>id uuid</code>, <code>need_id</code>, <code>supplier_id</code>, <code>price_offered numeric(12,2)</code>, <code>swap_offered_details</code>, <code>conditions</code>, <code>item_photo_url</code>, <code>status</code>, timestamps, <code>UNIQUE(need_id, supplier_id)</code>.</td>
+        </tr>
+        <tr>
+          <td><code>chat_messages</code></td>
+          <td><code>id uuid</code>, <code>need_id</code>, <code>offer_id</code>, <code>sender_id</code>, <code>receiver_id</code>, <code>message</code>, <code>created_at</code>.</td>
+        </tr>
+        <tr>
+          <td><code>reviews</code></td>
+          <td><code>id uuid</code>, <code>need_id</code>, <code>reviewer_id</code>, <code>reviewee_id</code>, <code>rating smallint 1..5</code>, <code>comment</code>, <code>created_at</code>, <code>UNIQUE(need_id, reviewer_id, reviewee_id)</code>.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Índices</h3>
+    <ul>
+      <li><code>needs(status, created_at desc)</code>, <code>needs(category_id)</code>, <code>needs(deal_type)</code>, índice GIST en <code>needs.location</code>, <code>needs(user_id)</code>.</li>
+      <li><code>offers(need_id, status)</code>, <code>offers(supplier_id)</code>.</li>
+      <li><code>chat_messages(need_id, created_at)</code>, <code>reviews(reviewee_id)</code>.</li>
+    </ul>
+  </section>
+
+  <section id="seguridad">
+    <h2><span class="num">4</span>RPCs, triggers, RLS, Storage y Realtime</h2>
+
+    <h3>RPCs transaccionales</h3>
+    <table>
+      <thead><tr><th>Función</th><th>Responsabilidad</th></tr></thead>
+      <tbody>
+        <tr><td><code>set_my_location(lat,lng)</code></td><td>Actualiza la ubicación del perfil sin exponer geometría cruda.</td></tr>
+        <tr><td><code>create_need(...)</code></td><td>Inserta una necesidad construyendo el <code>geography(Point,4326)</code>.</td></tr>
+        <tr><td><code>nearby_needs(...)</code></td><td>Feed cercano con <code>ST_DWithin</code> + <code>ST_Distance</code>, filtros por categoría/tipo/paginación.</td></tr>
+        <tr><td><code>accept_offer(offer_id)</code></td><td>Valida dueño y <code>pending</code>; acepta una, rechaza las demás y marca <code>need='matched'</code> en una transacción.</td></tr>
+        <tr><td><code>reject_offer / cancel_need / complete_need</code></td><td>Transiciones de estado controladas y auditables.</td></tr>
+        <tr><td><code>send_message(need_id, body)</code></td><td>Deriva el receptor desde la oferta aceptada; no confía en <code>receiver_id</code> del cliente.</td></tr>
+        <tr><td><code>create_review(need_id, rating, comment)</code></td><td>Valida <code>need='completed'</code> y participantes; deriva <code>reviewee_id</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Triggers</h3>
+    <ul>
+      <li><code>handle_new_user</code> → crea fila en <code>profiles</code> al registrarse.</li>
+      <li><code>set_updated_at</code> en tablas mutables.</li>
+      <li><code>refresh_profile_rating</code> en <code>reviews</code> (insert/update/delete) para recalcular <code>rating_avg</code> y <code>rating_count</code>.</li>
+    </ul>
+
+    <h3>RLS (resumen)</h3>
+    <table>
+      <thead><tr><th>Tabla</th><th>SELECT</th><th>INSERT</th><th>UPDATE / DELETE</th></tr></thead>
+      <tbody>
+        <tr><td><code>profiles</code></td><td>authenticated</td><td>propio <code>id</code></td><td>propio</td></tr>
+        <tr><td><code>categories</code></td><td>anon + auth</td><td>—</td><td>—</td></tr>
+        <tr><td><code>needs</code></td><td>authenticated (tablero comunitario)</td><td>dueño</td><td>dueño; estados vía RPC</td></tr>
+        <tr><td><code>offers</code></td><td>proveedor o dueño del need</td><td>proveedor ≠ dueño y need <code>open</code></td><td>proveedor propio <code>pending</code>; aceptación/rechazo vía RPC</td></tr>
+        <tr><td><code>chat_messages</code></td><td>participantes con oferta aceptada</td><td>solo vía RPC</td><td>—</td></tr>
+        <tr><td><code>reviews</code></td><td>authenticated (reputación pública)</td><td>solo vía RPC</td><td>—</td></tr>
+      </tbody>
+    </table>
+    <div class="callout">
+      <strong>Prevención de recursión:</strong> helper <code>can_access_chat(need_id, user_id)</code> en <code>security definer</code>; la política de <code>needs</code> es legible por authenticated y no referencia <code>offers</code>.
+    </div>
+    <div class="callout">
+      <strong>Privacidad:</strong> se guarda ubicación aproximada/barrio, no dirección exacta. Para el MVP las fotos de ofertas van a buckets públicos; la ruta privada con signed URLs queda como mejora.
+    </div>
+
+    <h3>Storage</h3>
+    <ul>
+      <li>Buckets públicos: <code>avatars</code>, <code>need-images</code>, <code>offer-images</code>.</li>
+      <li>Escritura solo en <code>{auth.uid()}/...</code>; lectura pública.</li>
+      <li>Subida desde la app con <code>arrayBuffer</code> vía <code>expo-file-system</code>.</li>
+    </ul>
+
+    <h3>Realtime</h3>
+    <ul>
+      <li>Agregar <code>offers</code> y <code>chat_messages</code> a <code>supabase_realtime</code>; <code>REPLICA IDENTITY FULL</code> para updates.</li>
+      <li>Suscripción en detalle de need (ofertas) y chat con <code>postgres_changes</code> filtrado por <code>need_id</code>.</li>
+    </ul>
+  </section>
+
+  <section id="fases">
+    <h2><span class="num">5</span>Fases de ejecución</h2>
+    <table>
+      <thead>
+        <tr><th>Fase</th><th>Entregable</th><th>Criterio de aceptación</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="badge p0">Fase 0</span><br>Bootstrap</td>
+          <td>Proyecto Expo SDK 57, Git, NativeWind, alias <code>@/*</code>, <code>.env.example</code>, <code>AGENTS.md</code>, scripts.</td>
+          <td><code>npx expo start</code> abre la app con tab inicial estilizada.</td>
+        </tr>
+        <tr>
+          <td><span class="badge p1">Fase 1</span><br>Supabase</td>
+          <td>Migraciones, seed de categorías, RLS, RPCs, storage, tipos generados.</td>
+          <td><code>db push</code> sin errores; RLS impide escrituras ajenas.</td>
+        </tr>
+        <tr>
+          <td><span class="badge p1">Fase 2</span><br>Core</td>
+          <td>Cliente Supabase, QueryClient, tema, UI primitives, validadores, tipos.</td>
+          <td><code>tsc --noEmit</code> limpio.</td>
+        </tr>
+        <tr>
+          <td><span class="badge p2">Fase 3</span><br>Auth</td>
+          <td>Registro/login email, callback, sesión persistida, guards, perfil base.</td>
+          <td>Registro → logout → login funciona.</td>
+        </tr>
+        <tr>
+          <td><span class="badge p2">Fase 4</span><br>Needs</td>
+          <td>Feed cercano con filtros, publicar con foto y ubicación, detalle.</td>
+          <td>Usuario B ve el pedido de A a menos de 5 km y puede abrirlo.</td>
+        </tr>
+        <tr>
+          <td><span class="badge p3">Fase 5</span><br>Offers</td>
+          <td>“Tengo esto”, lista recibida/enviada, aceptar/rechazar, realtime.</td>
+          <td>A acepta oferta; B ve <code>accepted</code> y las demás <code>rejected</code>.</td>
+        </tr>
+        <tr>
+          <td><span class="badge p3">Fase 6</span><br>Chat/Reviews</td>
+          <td>Chat realtime, completar need, reseña y actualización de rating.</td>
+          <td>Mensajes en vivo; al completar se puede reseñar y cambia <code>rating_avg</code>.</td>
+        </tr>
+        <tr>
+          <td><span class="badge p0">Fase 7</span><br>QA</td>
+          <td><code>typecheck</code>, <code>lint</code>, <code>expo-doctor</code>, smoke test de extremo a extremo.</td>
+          <td>Flujo completo sin errores de consola.</td>
+        </tr>
+        <tr>
+          <td><span class="badge p2">Fase 8</span><br>Post-MVP</td>
+          <td>Mapa, push notifications, Google OAuth, búsqueda, moderación, pagos.</td>
+          <td>Fuera del alcance de esta entrega.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="comandos">
+    <h2><span class="num">6</span>Comandos de bootstrap</h2>
+    <pre><code>Set-Location "C:\Users\Larra\Documents\REACT"
+npx create-expo-app@latest YoTengoApp --template default@sdk-57
+Set-Location "C:\Users\Larra\Documents\REACT\YoTengoApp"
+git init
+
+npx expo install nativewind@4.2.7 react-native-reanimated react-native-worklets react-native-safe-area-context
+npx expo install @react-native-async-storage/async-storage expo-image-picker expo-location expo-image expo-file-system expo-linking expo-constants
+npm install @supabase/supabase-js @tanstack/react-query react-hook-form zod @hookform/resolvers date-fns clsx tailwind-merge react-native-url-polyfill
+npm install -D tailwindcss@3 supabase prettier prettier-plugin-tailwindcss
+
+npx supabase init
+npm run typecheck
+npx expo-doctor</code></pre>
+
+    <h3>Scripts de <code>package.json</code></h3>
+    <pre><code>{
+  "start": "expo start",
+  "android": "expo start --android",
+  "ios": "expo start --ios",
+  "lint": "expo lint",
+  "typecheck": "tsc --noEmit",
+  "db:push": "supabase db push",
+  "db:types": "supabase gen types typescript --linked &gt; src/supabase/database.types.ts",
+  "db:reset": "supabase db reset"
+}</code></pre>
+  </section>
+
+  <section id="supabase">
+    <h2><span class="num">7</span>Configuración de Supabase</h2>
+    <ol>
+      <li>Crear el proyecto en <code>supabase.com</code> y habilitar la extensión <strong>PostGIS</strong> (Database → Extensions) si el SQL no puede crearla.</li>
+      <li>Copiar <em>Project URL</em> y <em>anon public key</em> a <code>.env</code>:
+        <pre><code>EXPO_PUBLIC_SUPABASE_URL=https://&lt;ref&gt;.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=&lt;anon-key&gt;</code></pre>
+      </li>
+      <li><code>npx supabase login</code> → <code>npx supabase link --project-ref &lt;ref&gt;</code> → <code>npm run db:push</code>.</li>
+      <li><code>npm run db:types</code> para generar tipos.</li>
+      <li>En Auth → URL Configuration agregar <code>yotengoapp://auth/callback</code> y el redirect de Expo (<code>exp://...</code> en desarrollo).</li>
+      <li>Google OAuth se configura en Fase 2: client IDs en Google Cloud + provider en Supabase.</li>
+    </ol>
+  </section>
+
+  <section id="riesgos">
+    <h2><span class="num">8</span>Riesgos y mitigaciones</h2>
+    <table>
+      <thead><tr><th>Riesgo</th><th>Mitigación</th></tr></thead>
+      <tbody>
+        <tr><td>NativeWind + Tailwind v4</td><td>Se fuerza <code>tailwindcss@3</code>; v4 rompe el build silenciosamente.</td></tr>
+        <tr><td>Expo Go SDK 57</td><td>Puede no estar en stores; usar Expo Go vía CLI/emulador o un development build con EAS si falla.</td></tr>
+        <tr><td>Windows / iOS</td><td>No hay build iOS local; validación en Android/Expo Go y EAS cuando corresponda.</td></tr>
+        <tr><td>RLS circular</td><td><code>needs</code> legible por authenticated y helper <code>security definer</code> para chat.</td></tr>
+        <tr><td>PostGIS</td><td>Si Supabase no permite crear la extensión desde SQL, habilitarla en dashboard y re-ejecutar la migración.</td></tr>
+        <tr><td>Permiso de ubicación denegado</td><td>El feed cae a “todos los pedidos recientes” sin romper la app.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="exito">
+    <h2><span class="num">9</span>Criterio de éxito del MVP</h2>
+    <div class="ok">
+      Un usuario publica una necesidad con foto; otro usuario a menos de 5 km la ve, envía una oferta con foto y precio; el creador la acepta; se habilita chat realtime; al completar, ambas partes se reseñan y el rating se actualiza. Todo con RLS verificado y <code>typecheck</code>/<code>lint</code> limpios.
+    </div>
+    <h3>Smoke test de extremo a extremo</h3>
+    <ol>
+      <li>Registro con email → perfil creado automáticamente.</li>
+      <li>Publicar necesidad con foto, fechas y ubicación.</li>
+      <li>Segundo usuario ve el pedido dentro de 5 km y envía oferta.</li>
+      <li>Dueño acepta una oferta; las demás cambian a rechazadas.</li>
+      <li>Chat realtime entre ambas partes.</li>
+      <li>Completar necesidad → reseñas → rating actualizado.</li>
+      <li>Verificar con anon key: no puede insertar needs ni leer chats ajenos.</li>
+    </ol>
+  </section>
+
+</main>
+
+<footer>
+  Documento de plan para revisión · YoTengoApp · Generado para revisión, sin ejecución de cambios en el proyecto.
+</footer>
+
+</body>
+</html>
