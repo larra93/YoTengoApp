@@ -8,7 +8,7 @@ export type PublicProfile = Pick<
 export interface NeedWithRelations extends Need {
   category: Category | null;
   author: PublicProfile | null;
-  offers_count: number;
+  offers_count?: number;
   distance_km?: number;
 }
 

@@ -118,7 +118,7 @@ src/
 - Fase 0: bootstrap, NativeWind, navegación, pantallas base con mocks.
 - Fase 1: proyecto Supabase, migraciones, RLS, seed, tipos generados.
 - Fase 2: autenticación email/password, sesión persistente, onboarding y perfil.
-- Fase 3: capa de datos con TanStack Query y RPC de cercanía.
+- Fase 3: feed y publicación de pedidos con TanStack Query, ubicación/RPC `nearby_needs`, filtros y foto.
 - Fase 4: publicación de pedidos con fotos y geolocalización.
 - Fase 5: ofertas, match, chat y notificaciones.
 - Fase 6: reseñas, reputación y pulido.

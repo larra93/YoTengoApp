@@ -1,8 +1,7 @@
-import { File } from 'expo-file-system';
 import type { ImagePickerAsset } from 'expo-image-picker';
 import * as Linking from 'expo-linking';
-import { Platform } from 'react-native';
 
+import { getImageExtension, imageAssetToArrayBuffer } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
 import type { Database } from '@/types/database.types';
 import type { Profile } from '@/types';
@@ -78,19 +77,10 @@ export async function updateProfile(userId: string, values: ProfileUpdate) {
   return mapProfile(data);
 }
 
-async function assetToArrayBuffer(asset: ImagePickerAsset) {
-  if (Platform.OS === 'web') {
-    const response = await fetch(asset.uri);
-    return response.arrayBuffer();
-  }
-
-  return new File(asset.uri).arrayBuffer();
-}
-
 export async function uploadAvatar(userId: string, asset: ImagePickerAsset) {
-  const extension = asset.mimeType?.split('/')[1]?.replace('jpeg', 'jpg') ?? 'jpg';
+  const extension = getImageExtension(asset);
   const path = `${userId}/avatar-${Date.now()}.${extension}`;
-  const bytes = await assetToArrayBuffer(asset);
+  const bytes = await imageAssetToArrayBuffer(asset);
 
   const { error } = await supabase.storage.from('avatars').upload(path, bytes, {
     contentType: asset.mimeType ?? 'image/jpeg',

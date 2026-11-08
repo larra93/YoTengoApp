@@ -8,7 +8,9 @@ Fase 0: bootstrap de Expo SDK 57, NativeWind, navegación por tabs y pantallas b
 
 Fase 1: proyecto Supabase vinculado, migraciones, PostGIS, RLS, RPCs, Storage, Realtime, seed de categorías y tipos generados.
 
-Fase 2: autenticación email/password con Supabase, sesión persistente, guards de rutas, onboarding obligatorio, perfil editable con avatar y estadísticas reales. Las pantallas de pedidos y chat siguen usando mocks hasta la Fase 3.
+Fase 2: autenticación email/password con Supabase, sesión persistente, guards de rutas, onboarding obligatorio, perfil editable con avatar y estadísticas reales.
+
+Fase 3 (pedidos): feed conectado a Supabase con categorías, filtros, ubicación/cercanía (`nearby_needs`) o fallback reciente, detalle real, publicación con foto, fechas y ubicación aproximada. Ofertas, chat y negociaciones siguen usando mocks hasta la Fase 4.
 
 ## Requisitos
 

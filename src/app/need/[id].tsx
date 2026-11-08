@@ -1,14 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Alert, Pressable, ScrollView, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CategoryThumb } from '@/components/needs';
 import { AppText, Avatar, Badge, Button, Screen, type BadgeTone } from '@/components/ui';
+import { useNeedDetail } from '@/features/needs/use-needs';
 import { cn } from '@/lib/cn';
 import { formatDateRange, formatDistance, getInitials } from '@/lib/format';
 import { DEAL_TYPE_ICON, DEAL_TYPE_LABEL } from '@/lib/labels';
-import { MOCK_NEEDS } from '@/mocks/data';
 import { palette } from '@/theme/tokens';
 import type { DealType } from '@/types';
 
@@ -43,9 +44,32 @@ export default function NeedDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const need = MOCK_NEEDS.find((item) => item.id === id) ?? MOCK_NEEDS[0];
-  const authorName = need.author?.full_name ?? 'Vecino';
-  const isOpen = need.status === 'open';
+  const needId = Array.isArray(id) ? id[0] : id;
+  const needQuery = useNeedDetail(needId);
+  const need = needQuery.data;
+  const authorName = need?.author?.full_name ?? 'Vecino';
+  const isOpen = need?.status === 'open';
+
+  if (needQuery.isLoading) {
+    return (
+      <Screen className="items-center justify-center gap-3">
+        <ActivityIndicator size="large" color={palette.brand} />
+        <AppText variant="muted">Cargando pedido...</AppText>
+      </Screen>
+    );
+  }
+
+  if (!need) {
+    return (
+      <Screen className="items-center justify-center gap-4 px-8">
+        <Ionicons name="search-outline" size={30} color={palette.placeholder} />
+        <AppText variant="title" className="text-center">
+          No encontramos este pedido
+        </AppText>
+        <Button label="Volver" onPress={() => router.back()} />
+      </Screen>
+    );
+  }
 
   return (
     <Screen>
@@ -71,8 +95,12 @@ export default function NeedDetailScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 24 }}
       >
-        <View className="mx-5 h-44 overflow-hidden rounded-2xl">
-          <CategoryThumb category={need.category} className="h-full w-full" iconSize={64} />
+        <View className="mx-5 h-44 overflow-hidden rounded-2xl bg-slate-100">
+          {need.reference_image_url ? (
+            <Image source={need.reference_image_url} style={{ flex: 1 }} contentFit="cover" />
+          ) : (
+            <CategoryThumb category={need.category} className="h-full w-full" iconSize={64} />
+          )}
           <View className="absolute left-3 top-3 flex-row gap-2">
             <Badge
               label={DEAL_TYPE_LABEL[need.deal_type]}
@@ -110,7 +138,11 @@ export default function NeedDetailScreen() {
             Alert.alert('Perfil público', 'El perfil del vecino se habilitará en la Fase 4.')
           }
         >
-          <Avatar size="md" initials={getInitials(authorName)} />
+          <Avatar
+            size="md"
+            uri={need.author?.avatar_url}
+            initials={getInitials(authorName) || '?'}
+          />
           <View className="flex-1 gap-0.5">
             <AppText variant="subtitle" className="text-[14px]">
               {authorName}
@@ -118,7 +150,7 @@ export default function NeedDetailScreen() {
             <View className="flex-row items-center gap-1">
               <Ionicons name="star" size={11} color="#F59E0B" />
               <AppText variant="caption">
-                {need.author ? need.author.rating_avg.toFixed(1) : 'Nuevo'}
+                {need.author ? Number(need.author.rating_avg).toFixed(1) : 'Nuevo'}
                 {need.author?.neighborhood ? ` · ${need.author.neighborhood}` : ''}
               </AppText>
             </View>

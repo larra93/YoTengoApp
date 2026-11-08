@@ -61,7 +61,7 @@ export function NeedCard({ need, onPress, className }: NeedCardProps) {
             </View>
             <View className="flex-row items-center gap-1">
               <Ionicons name="chatbubble-ellipses-outline" size={11} color="#64748B" />
-              <AppText variant="caption">{need.offers_count} ofertas</AppText>
+              <AppText variant="caption">{need.offers_count ?? 0} ofertas</AppText>
             </View>
           </View>
 
