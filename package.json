@@ -58,7 +58,8 @@
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "db:push": "supabase db push",
+    "db:push": "supabase db push --remote --include-seed",
+    "db:push:local": "supabase db push --include-seed",
     "db:types": "supabase gen types typescript --remote --schema public > src/types/database.types.ts",
     "db:reset": "supabase db reset"
   },

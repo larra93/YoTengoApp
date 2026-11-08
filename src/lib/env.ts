@@ -1,14 +1,15 @@
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseKey =
+  process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
 export function getSupabaseEnv() {
-  if (!supabaseUrl || !supabaseAnonKey) {
+  if (!supabaseUrl || !supabaseKey) {
     throw new Error(
-      'Faltan EXPO_PUBLIC_SUPABASE_URL y EXPO_PUBLIC_SUPABASE_ANON_KEY. Copia .env.example a .env y completa las credenciales.',
+      'Faltan EXPO_PUBLIC_SUPABASE_URL y EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY. Copia .env.example a .env y completa las credenciales.',
     );
   }
 
-  return { supabaseUrl, supabaseAnonKey };
+  return { supabaseUrl, supabaseKey };
 }
 
-export const hasSupabaseEnv = Boolean(supabaseUrl && supabaseAnonKey);
+export const hasSupabaseEnv = Boolean(supabaseUrl && supabaseKey);

@@ -41,7 +41,8 @@ Antes de cerrar un cambio ejecutar `npm run typecheck` y `npm run lint`. Para ca
 Copiar `.env.example` a `.env` y completar:
 
 - `EXPO_PUBLIC_SUPABASE_URL`
-- `EXPO_PUBLIC_SUPABASE_ANON_KEY`
+- `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (recomendada)
+- `EXPO_PUBLIC_SUPABASE_ANON_KEY` (legacy, opcional)
 
 Nunca commitear `.env`. Nunca usar la service role key en la app. Las claves públicas pueden estar en el bundle; la seguridad real depende de RLS.
 
@@ -88,9 +89,11 @@ src/
 - Las migraciones viven en `supabase/migrations`.
 - Generar tipos con `npm run db:types` después de aplicar migraciones.
 - No editar `src/types/database.types.ts` a mano.
-- Mantener `src/types/db.ts` alineado al esquema mientras no existan los tipos generados.
-- RPCs previstas: `get_nearby_needs`, `get_my_negotiations`, `accept_offer`, `create_review`.
+- `src/types/db.ts` deriva de los tipos generados y solo convierte `location` a `string | null`.
+- `npm run db:push` aplica migraciones y seed al proyecto remoto vinculado. `npm run db:push:local` requiere Docker.
+- RPCs: `nearby_needs`, `set_my_location`, `create_need`, `accept_offer`, `reject_offer`, `cancel_need`, `complete_need`, `send_message`, `create_review`.
 - Storage: buckets `need-images`, `offer-images`, `avatars`; rutas por `user_id`.
+- Los advisors marcan las RPC `security definer` como advertencia. Son intencionales y validan `auth.uid()` y participación antes de mutar.
 
 ## Fases
 

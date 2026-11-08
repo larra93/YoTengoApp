@@ -4,7 +4,9 @@ Marketplace comunitario de demanda inversa. Publica lo que necesitas, recibe ofe
 
 ## Estado actual
 
-Fase 0: bootstrap de Expo SDK 57, NativeWind, navegación por tabs y pantallas base con datos mock. La conexión real a Supabase comienza en la Fase 1.
+Fase 0: bootstrap de Expo SDK 57, NativeWind, navegación por tabs y pantallas base con datos mock.
+
+Fase 1: proyecto Supabase vinculado, migraciones, PostGIS, RLS, RPCs, Storage, Realtime, seed de categorías y tipos generados. Las pantallas siguen usando mocks hasta la Fase 2.
 
 ## Requisitos
 
@@ -24,19 +26,33 @@ Completa `.env` cuando tengas el proyecto de Supabase creado. La app arranca sin
 
 ## Scripts
 
-| Script                | Descripción                                  |
-| --------------------- | -------------------------------------------- |
-| `npm run start`       | Inicia el servidor de Expo.                  |
-| `npm run start:clear` | Inicia Expo limpiando la caché.              |
-| `npm run android`     | Abre la app en Android.                      |
-| `npm run ios`         | Abre la app en iOS.                          |
-| `npm run web`         | Abre la app en el navegador.                 |
-| `npm run typecheck`   | Verifica TypeScript sin emitir archivos.     |
-| `npm run lint`        | Ejecuta ESLint con la configuración de Expo. |
-| `npm run format`      | Formatea con Prettier.                       |
-| `npm run db:push`     | Aplica migraciones a Supabase.               |
-| `npm run db:types`    | Genera tipos desde el proyecto vinculado.    |
-| `npm run db:reset`    | Reinicia la base local de Supabase.          |
+| Script                  | Descripción                                   |
+| ----------------------- | --------------------------------------------- |
+| `npm run start`         | Inicia el servidor de Expo.                   |
+| `npm run start:clear`   | Inicia Expo limpiando la caché.               |
+| `npm run android`       | Abre la app en Android.                       |
+| `npm run ios`           | Abre la app en iOS.                           |
+| `npm run web`           | Abre la app en el navegador.                  |
+| `npm run typecheck`     | Verifica TypeScript sin emitir archivos.      |
+| `npm run lint`          | Ejecuta ESLint con la configuración de Expo.  |
+| `npm run format`        | Formatea con Prettier.                        |
+| `npm run db:push`       | Aplica migraciones y seed al proyecto remoto. |
+| `npm run db:push:local` | Aplica migraciones y seed con Docker local.   |
+| `npm run db:types`      | Genera tipos desde el proyecto vinculado.     |
+| `npm run db:reset`      | Reinicia la base local de Supabase.           |
+
+## Supabase
+
+Para vincular el proyecto y aplicar el esquema:
+
+```bash
+npx supabase login
+npx supabase link --project-ref <project-ref>
+npm run db:push
+npm run db:types
+```
+
+Completa `.env` con el Project URL y la Publishable key del dashboard. No uses la Secret key ni `service_role` en la app.
 
 ## Estructura
 
@@ -46,7 +62,8 @@ src/components/     Componentes de UI, pedidos, ofertas y chat
 src/lib/            Supabase, query client, formato y utilidades
 src/mocks/          Datos de demostración de la Fase 0
 src/theme/          Tokens visuales
-src/types/          Tipos de dominio
+src/types/          Tipos de dominio y tipos generados de Supabase
+supabase/           Migraciones, config y seed
 docs/               Plan de arquitectura y mockups
 ```
 

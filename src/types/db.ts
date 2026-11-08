@@ -1,77 +1,25 @@
-export type DealType = 'rent' | 'loan' | 'swap';
+import type { Database } from './database.types';
 
-export type NeedStatus = 'open' | 'matched' | 'completed' | 'cancelled';
+type PublicTables = Database['public']['Tables'];
 
-export type OfferStatus = 'pending' | 'accepted' | 'rejected';
-
-export interface Profile {
-  id: string;
-  full_name: string;
-  avatar_url: string | null;
-  phone: string | null;
-  rating_avg: number;
-  rating_count: number;
+type WithLocationString<T extends { location: unknown }> = Omit<T, 'location'> & {
   location: string | null;
-  neighborhood: string | null;
-  created_at: string;
-  updated_at: string;
-}
+};
 
-export interface Category {
-  id: number;
-  name: string;
-  slug: string;
-  icon: string;
-  sort_order: number;
-}
+export type DealType = Database['public']['Enums']['deal_type'];
 
-export interface Need {
-  id: string;
-  user_id: string;
-  category_id: number;
-  title: string;
-  description: string;
-  deal_type: DealType;
-  budget_or_offer_details: string | null;
-  start_date: string;
-  end_date: string | null;
-  status: NeedStatus;
-  reference_image_url: string | null;
-  location: string | null;
-  address_label: string | null;
-  created_at: string;
-  updated_at: string;
-}
+export type NeedStatus = Database['public']['Enums']['need_status'];
 
-export interface Offer {
-  id: string;
-  need_id: string;
-  supplier_id: string;
-  price_offered: number | null;
-  swap_offered_details: string | null;
-  conditions: string | null;
-  item_photo_url: string | null;
-  status: OfferStatus;
-  created_at: string;
-  updated_at: string;
-}
+export type OfferStatus = Database['public']['Enums']['offer_status'];
 
-export interface ChatMessage {
-  id: string;
-  need_id: string;
-  offer_id: string | null;
-  sender_id: string;
-  receiver_id: string;
-  message: string;
-  created_at: string;
-}
+export type Profile = WithLocationString<PublicTables['profiles']['Row']>;
 
-export interface Review {
-  id: string;
-  need_id: string;
-  reviewer_id: string;
-  reviewee_id: string;
-  rating: number;
-  comment: string | null;
-  created_at: string;
-}
+export type Category = PublicTables['categories']['Row'];
+
+export type Need = WithLocationString<PublicTables['needs']['Row']>;
+
+export type Offer = PublicTables['offers']['Row'];
+
+export type ChatMessage = PublicTables['chat_messages']['Row'];
+
+export type Review = PublicTables['reviews']['Row'];

@@ -5,3 +5,5 @@ web-build
 docs
 assets/expo.icon
 package-lock.json
+src/types/database.types.ts
+supabase/.temp
