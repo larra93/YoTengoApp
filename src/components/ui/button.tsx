@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
-import { Pressable, type PressableProps } from 'react-native';
+import { ActivityIndicator, Pressable, type PressableProps } from 'react-native';
 
 import { cn } from '@/lib/cn';
+import { palette } from '@/theme/tokens';
 
 import { AppText } from './app-text';
 
@@ -37,6 +38,7 @@ export interface ButtonProps extends Omit<PressableProps, 'children' | 'style'> 
   variant?: ButtonVariant;
   size?: ButtonSize;
   icon?: ReactNode;
+  loading?: boolean;
   className?: string;
   textClassName?: string;
 }
@@ -46,6 +48,7 @@ export function Button({
   variant = 'primary',
   size = 'md',
   icon,
+  loading,
   className,
   textClassName,
   disabled,
@@ -54,17 +57,25 @@ export function Button({
   return (
     <Pressable
       accessibilityRole="button"
-      disabled={disabled}
+      accessibilityState={{ disabled: disabled || loading }}
+      disabled={disabled || loading}
       className={cn(
         'flex-row items-center justify-center gap-2',
         sizeStyles[size],
         variantStyles[variant],
-        disabled && 'opacity-50',
+        (disabled || loading) && 'opacity-50',
         className,
       )}
       {...props}
     >
-      {icon}
+      {loading ? (
+        <ActivityIndicator
+          size="small"
+          color={variant === 'primary' ? palette.surface : palette.brandDark}
+        />
+      ) : (
+        icon
+      )}
       <AppText
         className={cn(
           'text-center font-extrabold',

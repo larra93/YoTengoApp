@@ -46,27 +46,45 @@ Copiar `.env.example` a `.env` y completar:
 
 Nunca commitear `.env`. Nunca usar la service role key en la app. Las claves públicas pueden estar en el bundle; la seguridad real depende de RLS.
 
+## Autenticación
+
+- Supabase Auth con email/password y flujo PKCE (`flowType: 'pkce'`, `detectSessionInUrl: false`).
+- Sesión persistida en AsyncStorage; en SSR web se usa almacenamiento vacío para evitar `window is not defined`.
+- Deep link en `src/app/auth/callback.tsx`: intercambiar `code` con `exchangeCodeForSession`.
+- Redirect URLs permitidas en Supabase: `yotengoapp://auth/callback`, la URL de Expo Go y `http://localhost:8081/auth/callback`.
+- El guard vive en `src/app/_layout.tsx`: sin sesión → `(auth)`; con perfil incompleto (sin barrio) → `onboarding`; con sesión completa → tabs.
+- El perfil se autocrea con el trigger `handle_new_user`; si falta, `AuthProvider` lo crea.
+- Formularios con React Hook Form + Zod en `src/validation/auth.ts`.
+- Al agregar rutas, regenerar tipos de Expo Router con `npx expo export --platform web` o `expo start` antes de `npm run typecheck`.
+
 ## Estructura
 
 ```text
 src/
   app/                 Rutas de Expo Router
+    (auth)/            Iniciar sesión y registro
+    auth/callback.tsx  Deep link PKCE
+    onboarding.tsx     Completar perfil obligatorio
+    edit-profile.tsx   Editar perfil
     (tabs)/            Explorar, publicar, negociaciones, perfil
     need/[id].tsx      Detalle de un pedido
     offer/[needId].tsx Formulario de oferta
     chat/[needId].tsx  Chat del pedido
   components/
     ui/                Componentes base (Screen, Button, Card, Field...)
+    auth/              Layout compartido de autenticación
+    profile/           Selector de avatar
     needs/             Tarjetas y miniaturas de pedidos
     offers/            Tarjetas de ofertas
     chat/              Burbujas de mensajes
+  features/
+    auth/              Sesión, perfil, API y errores de Supabase Auth
+    profile/           Estadísticas del perfil
   lib/                 Utilidades, Supabase, query client, formato
-  mocks/               Datos de demostración de la Fase 0
+  mocks/               Datos de demostración de pantallas pendientes
   theme/               Tokens de color y radios
   types/               Tipos de dominio (espejo del esquema)
-  api/                 Consultas y mutaciones (Fase 2+)
-  hooks/               Hooks compartidos (Fase 2+)
-  validation/          Esquemas Zod (Fase 2+)
+  validation/          Esquemas Zod de formularios
 ```
 
 ## Convenciones
@@ -105,4 +123,4 @@ src/
 - Fase 5: ofertas, match, chat y notificaciones.
 - Fase 6: reseñas, reputación y pulido.
 
-La Fase 0 funciona sin `.env`; no importar `src/lib/supabase.ts` hasta que existan credenciales.
+La app requiere `.env` con credenciales de Supabase desde la Fase 2. No importar `service_role` ni claves secretas en ningún archivo del cliente.

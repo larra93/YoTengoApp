@@ -6,7 +6,9 @@ Marketplace comunitario de demanda inversa. Publica lo que necesitas, recibe ofe
 
 Fase 0: bootstrap de Expo SDK 57, NativeWind, navegación por tabs y pantallas base con datos mock.
 
-Fase 1: proyecto Supabase vinculado, migraciones, PostGIS, RLS, RPCs, Storage, Realtime, seed de categorías y tipos generados. Las pantallas siguen usando mocks hasta la Fase 2.
+Fase 1: proyecto Supabase vinculado, migraciones, PostGIS, RLS, RPCs, Storage, Realtime, seed de categorías y tipos generados.
+
+Fase 2: autenticación email/password con Supabase, sesión persistente, guards de rutas, onboarding obligatorio, perfil editable con avatar y estadísticas reales. Las pantallas de pedidos y chat siguen usando mocks hasta la Fase 3.
 
 ## Requisitos
 
@@ -22,7 +24,7 @@ Copy-Item .env.example .env
 npm run start
 ```
 
-Completa `.env` cuando tengas el proyecto de Supabase creado. La app arranca sin credenciales porque la Fase 0 usa mocks.
+Completa `.env` con el Project URL y la Publishable key del dashboard antes de iniciar la app.
 
 ## Scripts
 
@@ -54,15 +56,27 @@ npm run db:types
 
 Completa `.env` con el Project URL y la Publishable key del dashboard. No uses la Secret key ni `service_role` en la app.
 
+## Autenticación
+
+La app usa email/password con flujo PKCE. Configura en Supabase (Authentication → URL Configuration) las redirect URLs:
+
+- `yotengoapp://auth/callback` para development build.
+- `exp://127.0.0.1:8081/--/auth/callback` o la URL que muestre Expo Go.
+- `http://localhost:8081/auth/callback` para web en desarrollo.
+
+El onboarding se exige mientras el perfil no tenga barrio. El avatar se guarda en el bucket `avatars`; el perfil se crea automáticamente al registrarse.
+
 ## Estructura
 
 ```text
-src/app/            Rutas de Expo Router
-src/components/     Componentes de UI, pedidos, ofertas y chat
+src/app/            Rutas de Expo Router (auth, onboarding, tabs)
+src/components/     Componentes de UI, auth, perfil, pedidos, ofertas y chat
+src/features/       Lógica de auth y estadísticas de perfil
 src/lib/            Supabase, query client, formato y utilidades
-src/mocks/          Datos de demostración de la Fase 0
+src/mocks/          Datos de demostración de las pantallas pendientes
 src/theme/          Tokens visuales
 src/types/          Tipos de dominio y tipos generados de Supabase
+src/validation/     Esquemas Zod de formularios
 supabase/           Migraciones, config y seed
 docs/               Plan de arquitectura y mockups
 ```

@@ -4,13 +4,18 @@ import { Alert, Pressable, ScrollView, View } from 'react-native';
 
 import { NeedCard } from '@/components/needs';
 import { AppText, Avatar, Screen, SectionHeader } from '@/components/ui';
+import { useAuth } from '@/features/auth/auth-provider';
 import { getInitials } from '@/lib/format';
-import { CURRENT_USER_ID, MOCK_CATEGORIES, MOCK_NEEDS, MOCK_PROFILE } from '@/mocks/data';
+import { CURRENT_USER_ID, MOCK_CATEGORIES, MOCK_NEEDS } from '@/mocks/data';
 import { palette } from '@/theme/tokens';
 
 export default function ExploreScreen() {
   const router = useRouter();
+  const { profile } = useAuth();
   const nearbyNeeds = MOCK_NEEDS.filter((need) => need.user_id !== CURRENT_USER_ID);
+  const fullName = profile?.full_name?.trim() || 'vecino';
+  const firstName = fullName.split(' ')[0];
+  const neighborhood = profile?.neighborhood?.trim() || 'Elige tu barrio';
 
   return (
     <Screen>
@@ -24,14 +29,14 @@ export default function ExploreScreen() {
               YoTengoApp
             </AppText>
             <AppText variant="display" className="text-[26px]">
-              Hola, {MOCK_PROFILE.full_name.split(' ')[0]}
+              Hola, {firstName}
             </AppText>
             <Pressable
               className="mt-1 flex-row items-center gap-1 self-start"
-              onPress={() => Alert.alert('Ubicación', 'Podrás cambiar tu barrio en la Fase 2.')}
+              onPress={() => router.push('/edit-profile')}
             >
               <Ionicons name="location-sharp" size={13} color={palette.brand} />
-              <AppText variant="caption">{MOCK_PROFILE.neighborhood}</AppText>
+              <AppText variant="caption">{neighborhood}</AppText>
               <Ionicons name="chevron-down" size={12} color={palette.muted} />
             </Pressable>
           </View>
@@ -48,7 +53,7 @@ export default function ExploreScreen() {
               <View className="absolute right-3 top-3 h-1.5 w-1.5 rounded-full bg-accent" />
             </Pressable>
             <Pressable accessibilityLabel="Ir al perfil" onPress={() => router.push('/profile')}>
-              <Avatar size="md" initials={getInitials(MOCK_PROFILE.full_name)} />
+              <Avatar size="md" uri={profile?.avatar_url} initials={getInitials(fullName) || '?'} />
             </Pressable>
           </View>
         </View>
