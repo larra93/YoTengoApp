@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CategoryThumb } from '@/components/needs';
 import { AppText, Avatar, Badge, Button, Screen, type BadgeTone } from '@/components/ui';
+import { useAuth } from '@/features/auth/auth-provider';
 import { useNeedDetail } from '@/features/needs/use-needs';
 import { cn } from '@/lib/cn';
 import { formatDateRange, formatDistance, getInitials } from '@/lib/format';
@@ -44,11 +45,13 @@ export default function NeedDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { user } = useAuth();
   const needId = Array.isArray(id) ? id[0] : id;
   const needQuery = useNeedDetail(needId);
   const need = needQuery.data;
   const authorName = need?.author?.full_name ?? 'Vecino';
   const isOpen = need?.status === 'open';
+  const isOwnNeed = Boolean(user?.id && need?.user_id === user.id);
 
   if (needQuery.isLoading) {
     return (
@@ -85,7 +88,9 @@ export default function NeedDetailScreen() {
         <Pressable
           accessibilityLabel="Compartir"
           className="h-10 w-10 items-center justify-center rounded-full border border-line bg-surface"
-          onPress={() => Alert.alert('Compartir', 'El enlace público se habilitará en la Fase 4.')}
+          onPress={() =>
+            Alert.alert('Compartir', 'El enlace público se habilitará en una próxima fase.')
+          }
         >
           <Ionicons name="share-outline" size={18} color={palette.ink} />
         </Pressable>
@@ -135,7 +140,7 @@ export default function NeedDetailScreen() {
         <Pressable
           className="mx-5 mt-4 flex-row items-center gap-3 rounded-card border border-line bg-surface p-3.5"
           onPress={() =>
-            Alert.alert('Perfil público', 'El perfil del vecino se habilitará en la Fase 4.')
+            Alert.alert('Perfil público', 'El perfil del vecino se habilitará en una próxima fase.')
           }
         >
           <Avatar
@@ -195,7 +200,9 @@ export default function NeedDetailScreen() {
 
         <Pressable
           className="mx-5 mt-4 flex-row items-center gap-3 rounded-card border border-line bg-surface p-4"
-          onPress={() => Alert.alert('Mapa', 'El mapa con PostGIS se habilitará en la Fase 2.')}
+          onPress={() =>
+            Alert.alert('Mapa', 'El mapa con PostGIS se habilitará en una próxima fase.')
+          }
         >
           <View className="h-10 w-10 items-center justify-center rounded-full bg-brand-soft">
             <Ionicons name="map-outline" size={19} color={palette.brandDark} />
@@ -221,15 +228,24 @@ export default function NeedDetailScreen() {
               {need.budget_or_offer_details ?? 'A convenir'}
             </AppText>
           </View>
-          <Button
-            label={isOpen ? 'Tengo esto' : 'Pedido no disponible'}
-            disabled={!isOpen}
-            className="flex-1"
-            icon={<Ionicons name="hand-left-outline" size={18} color="#FFFFFF" />}
-            onPress={() =>
-              router.push({ pathname: '/offer/[needId]', params: { needId: need.id } })
-            }
-          />
+          {isOwnNeed ? (
+            <Button
+              label="Ver negociaciones"
+              className="flex-1"
+              icon={<Ionicons name="chatbubbles-outline" size={18} color="#FFFFFF" />}
+              onPress={() => router.push('/(tabs)/negotiations')}
+            />
+          ) : (
+            <Button
+              label={isOpen ? 'Tengo esto' : 'Pedido no disponible'}
+              disabled={!isOpen}
+              className="flex-1"
+              icon={<Ionicons name="hand-left-outline" size={18} color="#FFFFFF" />}
+              onPress={() =>
+                router.push({ pathname: '/offer/[needId]', params: { needId: need.id } })
+              }
+            />
+          )}
         </View>
       </View>
     </Screen>

@@ -80,6 +80,9 @@ src/
   features/
     auth/              Sesión, perfil, API y errores de Supabase Auth
     profile/           Estadísticas del perfil
+    needs/             Feed, detalle, publicación, ubicación y storage
+    offers/            Crear/listar ofertas, aceptar/rechazar y realtime
+    chat/              Historial, envío de mensajes, acceso y realtime
   lib/                 Utilidades, Supabase, query client, formato
   mocks/               Datos de demostración de pantallas pendientes
   theme/               Tokens de color y radios
@@ -119,8 +122,7 @@ src/
 - Fase 1: proyecto Supabase, migraciones, RLS, seed, tipos generados.
 - Fase 2: autenticación email/password, sesión persistente, onboarding y perfil.
 - Fase 3: feed y publicación de pedidos con TanStack Query, ubicación/RPC `nearby_needs`, filtros y foto.
-- Fase 4: publicación de pedidos con fotos y geolocalización.
-- Fase 5: ofertas, match, chat y notificaciones.
-- Fase 6: reseñas, reputación y pulido.
+- Fase 4: ofertas con foto/precio, match (`accept_offer`/`reject_offer`), negociaciones y chat realtime por `need_id`.
+- Fase 5: reseñas, reputación, notificaciones y pulido.
 
 La app requiere `.env` con credenciales de Supabase desde la Fase 2. No importar `service_role` ni claves secretas en ningún archivo del cliente.

@@ -15,4 +15,14 @@ export const queryKeys = {
     recent: (filters: NeedFilters) => ['needs', 'recent', filters] as const,
     detail: (needId: string) => ['needs', 'detail', needId] as const,
   },
+  offers: {
+    all: ['offers'] as const,
+    received: (userId: string) => ['offers', 'received', userId] as const,
+    sent: (userId: string) => ['offers', 'sent', userId] as const,
+    byNeed: (needId: string) => ['offers', 'need', needId] as const,
+  },
+  chat: {
+    byNeed: (needId: string) => ['chat', needId] as const,
+    access: (needId: string, userId: string) => ['chat', 'access', needId, userId] as const,
+  },
 };

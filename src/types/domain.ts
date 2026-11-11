@@ -12,9 +12,14 @@ export interface NeedWithRelations extends Need {
   distance_km?: number;
 }
 
-export interface OfferWithSupplier extends Offer {
+export interface OfferWithRelations extends Offer {
   supplier: PublicProfile | null;
+  need?: Pick<Need, 'id' | 'title' | 'status' | 'user_id' | 'deal_type' | 'reference_image_url'> & {
+    category?: Category | null;
+  };
 }
+
+export type OfferWithSupplier = OfferWithRelations;
 
 export interface ChatMessageWithSender extends ChatMessage {
   sender: PublicProfile | null;

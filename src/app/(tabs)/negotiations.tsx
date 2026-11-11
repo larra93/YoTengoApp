@@ -1,20 +1,78 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, View } from 'react-native';
 
 import { OfferCard } from '@/components/offers';
 import { AppText, Screen } from '@/components/ui';
+import { useAuth } from '@/features/auth/auth-provider';
+import { getOfferErrorMessage } from '@/features/offers/errors';
+import {
+  useAcceptOffer,
+  useOffersRealtime,
+  useReceivedOffers,
+  useRejectOffer,
+  useSentOffers,
+} from '@/features/offers/use-offers';
 import { cn } from '@/lib/cn';
-import { MOCK_RECEIVED_OFFERS, MOCK_SENT_OFFERS } from '@/mocks/data';
 import { palette } from '@/theme/tokens';
 
 type NegotiationTab = 'received' | 'sent';
 
 export default function NegotiationsScreen() {
   const router = useRouter();
+  const { user } = useAuth();
   const [tab, setTab] = useState<NegotiationTab>('received');
-  const offers = tab === 'received' ? MOCK_RECEIVED_OFFERS : MOCK_SENT_OFFERS;
+  const receivedQuery = useReceivedOffers(user?.id);
+  const sentQuery = useSentOffers(user?.id);
+  const acceptOffer = useAcceptOffer();
+  const rejectOffer = useRejectOffer();
+  useOffersRealtime(user?.id);
+
+  const offers = (tab === 'received' ? receivedQuery.data : sentQuery.data) ?? [];
+  const isLoading = tab === 'received' ? receivedQuery.isLoading : sentQuery.isLoading;
+  const isError = tab === 'received' ? receivedQuery.isError : sentQuery.isError;
+  const pendingReceived = (receivedQuery.data ?? []).filter(
+    (offer) => offer.status === 'pending',
+  ).length;
+
+  const handleAccept = (offerId: string, supplierName: string) => {
+    Alert.alert('Aceptar oferta', `¿Confirmas la oferta de ${supplierName}?`, [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Aceptar',
+        onPress: async () => {
+          try {
+            await acceptOffer.mutateAsync(offerId);
+            Alert.alert('Match creado', 'Ya pueden coordinar por el chat del pedido.');
+          } catch (error) {
+            Alert.alert('No pudimos aceptar', getOfferErrorMessage(error));
+          }
+        },
+      },
+    ]);
+  };
+
+  const handleReject = (offerId: string) => {
+    Alert.alert(
+      'Rechazar oferta',
+      '¿Quieres descartar esta oferta? El vecino podrá seguir viendo tu pedido.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Rechazar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await rejectOffer.mutateAsync(offerId);
+            } catch (error) {
+              Alert.alert('No pudimos rechazar', getOfferErrorMessage(error));
+            }
+          },
+        },
+      ],
+    );
+  };
 
   return (
     <Screen>
@@ -32,14 +90,6 @@ export default function NegotiationsScreen() {
               Revisa ofertas, acuerda detalles y coordina la entrega.
             </AppText>
           </View>
-          <Pressable
-            className="h-11 w-11 items-center justify-center rounded-full border border-line bg-surface"
-            onPress={() =>
-              Alert.alert('Filtros', 'Los filtros de negociaciones llegarán en la Fase 5.')
-            }
-          >
-            <Ionicons name="options-outline" size={19} color={palette.ink} />
-          </Pressable>
         </View>
 
         <View className="mx-5 mt-5 flex-row rounded-xl bg-slate-100 p-1">
@@ -53,7 +103,7 @@ export default function NegotiationsScreen() {
             <AppText
               className={cn('text-xs font-bold', tab === 'received' ? 'text-ink' : 'text-muted')}
             >
-              Recibidas ({MOCK_RECEIVED_OFFERS.length})
+              Recibidas ({receivedQuery.data?.length ?? 0})
             </AppText>
           </Pressable>
           <Pressable
@@ -63,64 +113,51 @@ export default function NegotiationsScreen() {
             <AppText
               className={cn('text-xs font-bold', tab === 'sent' ? 'text-ink' : 'text-muted')}
             >
-              Enviadas ({MOCK_SENT_OFFERS.length})
+              Enviadas ({sentQuery.data?.length ?? 0})
             </AppText>
           </Pressable>
         </View>
 
-        {tab === 'received' ? (
+        {tab === 'received' && pendingReceived > 0 ? (
           <View className="mx-5 mt-4 flex-row items-center gap-2.5 rounded-xl bg-amber-50 p-3">
             <Ionicons name="time-outline" size={18} color={palette.amber} />
             <AppText className="flex-1 text-xs font-semibold text-amber-800">
-              3 ofertas esperan tu respuesta. Responde pronto para no perder el match.
+              {pendingReceived === 1
+                ? '1 oferta espera tu respuesta. Responde pronto para no perder el match.'
+                : `${pendingReceived} ofertas esperan tu respuesta. Responde pronto para no perder el match.`}
             </AppText>
           </View>
         ) : null}
 
         <View className="mt-4 gap-3 px-5">
-          {offers.length > 0 ? (
+          {isLoading ? (
+            <View className="items-center gap-2 rounded-card border border-dashed border-slate-300 bg-surface px-6 py-10">
+              <ActivityIndicator size="small" color={palette.brand} />
+              <AppText variant="muted">Cargando ofertas...</AppText>
+            </View>
+          ) : isError ? (
+            <View className="items-center gap-2 rounded-card border border-dashed border-slate-300 bg-surface px-6 py-10">
+              <Ionicons name="cloud-offline-outline" size={26} color={palette.placeholder} />
+              <AppText variant="subtitle">No pudimos cargar las ofertas</AppText>
+              <AppText variant="caption" className="text-center">
+                Revisa tu conexión e intenta nuevamente.
+              </AppText>
+            </View>
+          ) : offers.length > 0 ? (
             offers.map((offer) => (
               <OfferCard
                 key={offer.id}
                 offer={offer}
+                canManage={tab === 'received'}
+                showNeed={tab === 'sent'}
                 onChat={() =>
                   router.push({
                     pathname: '/chat/[needId]',
                     params: { needId: offer.need_id, offerId: offer.id },
                   })
                 }
-                onAccept={() =>
-                  Alert.alert(
-                    'Aceptar oferta',
-                    `¿Confirmas la oferta de ${offer.supplier?.full_name ?? 'tu vecino'}?`,
-                    [
-                      { text: 'Cancelar', style: 'cancel' },
-                      {
-                        text: 'Aceptar',
-                        onPress: () =>
-                          Alert.alert(
-                            'Match creado',
-                            'La confirmación real se implementará en la Fase 5.',
-                          ),
-                      },
-                    ],
-                  )
-                }
-                onReject={() =>
-                  Alert.alert(
-                    'Rechazar oferta',
-                    '¿Quieres descartar esta oferta? El vecino podrá seguir viendo tu pedido.',
-                    [
-                      { text: 'Cancelar', style: 'cancel' },
-                      {
-                        text: 'Rechazar',
-                        style: 'destructive',
-                        onPress: () =>
-                          Alert.alert('Oferta rechazada', 'La acción se conectará en la Fase 5.'),
-                      },
-                    ],
-                  )
-                }
+                onAccept={() => handleAccept(offer.id, offer.supplier?.full_name ?? 'tu vecino')}
+                onReject={() => handleReject(offer.id)}
               />
             ))
           ) : (
@@ -128,7 +165,9 @@ export default function NegotiationsScreen() {
               <Ionicons name="chatbubbles-outline" size={32} color={palette.placeholder} />
               <AppText variant="subtitle">Aún no hay ofertas aquí</AppText>
               <AppText variant="caption" className="text-center">
-                Cuando envíes o recibas una oferta, aparecerá en esta bandeja.
+                {tab === 'received'
+                  ? 'Cuando un vecino ofrezca algo para tus pedidos, aparecerá en esta bandeja.'
+                  : 'Cuando envíes una oferta, podrás seguir su estado en esta bandeja.'}
               </AppText>
             </View>
           )}

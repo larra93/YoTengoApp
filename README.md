@@ -10,7 +10,9 @@ Fase 1: proyecto Supabase vinculado, migraciones, PostGIS, RLS, RPCs, Storage, R
 
 Fase 2: autenticación email/password con Supabase, sesión persistente, guards de rutas, onboarding obligatorio, perfil editable con avatar y estadísticas reales.
 
-Fase 3 (pedidos): feed conectado a Supabase con categorías, filtros, ubicación/cercanía (`nearby_needs`) o fallback reciente, detalle real, publicación con foto, fechas y ubicación aproximada. Ofertas, chat y negociaciones siguen usando mocks hasta la Fase 4.
+Fase 3 (pedidos): feed conectado a Supabase con categorías, filtros, ubicación/cercanía (`nearby_needs`) o fallback reciente, detalle real, publicación con foto, fechas y ubicación aproximada.
+
+Fase 4 (ofertas y chat): envío de ofertas con foto y precio, bandejas de ofertas recibidas/enviadas, aceptar/rechazar con match transaccional, chat habilitado por oferta aceptada y actualizaciones en tiempo real con Supabase Realtime.
 
 ## Requisitos
 
@@ -73,7 +75,7 @@ El onboarding se exige mientras el perfil no tenga barrio. El avatar se guarda e
 ```text
 src/app/            Rutas de Expo Router (auth, onboarding, tabs)
 src/components/     Componentes de UI, auth, perfil, pedidos, ofertas y chat
-src/features/       Lógica de auth y estadísticas de perfil
+src/features/       Lógica de auth, perfil, pedidos, ofertas y chat
 src/lib/            Supabase, query client, formato y utilidades
 src/mocks/          Datos de demostración de las pantallas pendientes
 src/theme/          Tokens visuales

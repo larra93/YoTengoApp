@@ -1,22 +1,128 @@
 import { Ionicons } from '@expo/vector-icons';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
+import type { ImagePickerAsset } from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
+import { Controller, useForm } from 'react-hook-form';
+import {
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  View,
+} from 'react-native';
 
 import { CategoryThumb } from '@/components/needs';
 import { AppText, Button, Field, Screen } from '@/components/ui';
+import { useAuth } from '@/features/auth/auth-provider';
+import { useNeedDetail } from '@/features/needs/use-needs';
+import { getOfferErrorMessage } from '@/features/offers/errors';
+import { useCreateOffer } from '@/features/offers/use-offers';
 import { formatDateRange } from '@/lib/format';
 import { DEAL_TYPE_LABEL } from '@/lib/labels';
-import { MOCK_NEEDS } from '@/mocks/data';
 import { palette } from '@/theme/tokens';
+import { offerSchema, type OfferFormValues } from '@/validation/offers';
 
 export default function OfferScreen() {
+  'use no memo';
   const { needId } = useLocalSearchParams<{ needId: string }>();
   const router = useRouter();
-  const need = MOCK_NEEDS.find((item) => item.id === needId) ?? MOCK_NEEDS[0];
-  const [details, setDetails] = useState('');
-  const [price, setPrice] = useState('');
-  const [conditions, setConditions] = useState('');
+  const { user } = useAuth();
+  const resolvedNeedId = Array.isArray(needId) ? needId[0] : needId;
+  const needQuery = useNeedDetail(resolvedNeedId);
+  const createOffer = useCreateOffer();
+  const [imageAsset, setImageAsset] = useState<ImagePickerAsset | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<OfferFormValues, any, OfferFormValues>({
+    resolver: zodResolver(offerSchema),
+    defaultValues: {
+      price: '',
+      swapOfferedDetails: '',
+      conditions: '',
+    },
+  });
+
+  const need = needQuery.data;
+  const isOwnNeed = Boolean(user?.id && need?.user_id === user.id);
+
+  const handlePickImage = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permission.granted) {
+      Alert.alert(
+        'Permiso necesario',
+        'Necesitamos acceso a tus fotos para agregar una imagen a tu oferta.',
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setImageAsset(result.assets[0]);
+    }
+  };
+
+  const onSubmit = handleSubmit(async (values) => {
+    if (!user?.id || !resolvedNeedId) {
+      return;
+    }
+
+    setFeedback(null);
+
+    try {
+      await createOffer.mutateAsync({
+        needId: resolvedNeedId,
+        supplierId: user.id,
+        priceOffered: values.price ? Number(values.price) : null,
+        swapOfferedDetails: values.swapOfferedDetails?.trim(),
+        conditions: values.conditions?.trim(),
+        imageAsset,
+      });
+
+      Alert.alert('Oferta enviada', 'Tu oferta ya está disponible para el vecino.', [
+        { text: 'Ver negociaciones', onPress: () => router.replace('/(tabs)/negotiations') },
+        { text: 'Volver', onPress: () => router.back() },
+      ]);
+    } catch (error) {
+      setFeedback(getOfferErrorMessage(error));
+    }
+  });
+
+  if (needQuery.isLoading) {
+    return (
+      <Screen className="items-center justify-center gap-3">
+        <ActivityIndicator size="large" color={palette.brand} />
+        <AppText variant="muted">Cargando pedido...</AppText>
+      </Screen>
+    );
+  }
+
+  if (!need) {
+    return (
+      <Screen className="items-center justify-center gap-4 px-8">
+        <Ionicons name="search-outline" size={30} color={palette.placeholder} />
+        <AppText variant="title" className="text-center">
+          No encontramos este pedido
+        </AppText>
+        <Button label="Volver" onPress={() => router.back()} />
+      </Screen>
+    );
+  }
 
   return (
     <Screen>
@@ -34,7 +140,7 @@ export default function OfferScreen() {
           </Pressable>
           <View className="flex-1">
             <AppText variant="subtitle">Enviar oferta</AppText>
-            <AppText variant="caption">Paso 1 de 1 · se envía por chat</AppText>
+            <AppText variant="caption">El vecino recibirá tu propuesta</AppText>
           </View>
         </View>
 
@@ -64,6 +170,14 @@ export default function OfferScreen() {
           </View>
 
           <View className="mt-5 gap-4 px-5">
+            {isOwnNeed ? (
+              <View className="rounded-xl border border-amber-200 bg-amber-50 p-3">
+                <AppText className="text-xs font-semibold text-amber-800">
+                  No puedes enviar una oferta a tu propio pedido.
+                </AppText>
+              </View>
+            ) : null}
+
             <View className="gap-1">
               <AppText variant="subtitle">Cuéntale qué puedes ofrecer</AppText>
               <AppText variant="muted">
@@ -72,46 +186,85 @@ export default function OfferScreen() {
             </View>
 
             <Pressable
-              className="items-center justify-center gap-1.5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 py-6"
-              onPress={() =>
-                Alert.alert('Foto de tu oferta', 'La cámara se habilitará en la Fase 5.')
-              }
+              className="items-center justify-center gap-1.5 overflow-hidden rounded-2xl border border-dashed border-slate-300 bg-slate-50"
+              onPress={handlePickImage}
+              disabled={isOwnNeed}
             >
-              <View className="h-10 w-10 items-center justify-center rounded-full bg-brand-soft">
-                <Ionicons name="camera-outline" size={19} color={palette.brandDark} />
-              </View>
-              <AppText className="text-xs font-bold text-brand-dark">
-                Agregar foto de tu oferta
-              </AppText>
-              <AppText variant="caption">Opcional · genera más confianza</AppText>
+              {imageAsset?.uri ? (
+                <Image
+                  source={{ uri: imageAsset.uri }}
+                  style={{ width: '100%', height: 160 }}
+                  contentFit="cover"
+                />
+              ) : (
+                <View className="items-center gap-1.5 py-6">
+                  <View className="h-10 w-10 items-center justify-center rounded-full bg-brand-soft">
+                    <Ionicons name="camera-outline" size={19} color={palette.brandDark} />
+                  </View>
+                  <AppText className="text-xs font-bold text-brand-dark">
+                    Agregar foto de tu oferta
+                  </AppText>
+                  <AppText variant="caption">Opcional · genera más confianza</AppText>
+                </View>
+              )}
             </Pressable>
 
-            <Field
-              label="¿Qué ofreces?"
-              placeholder="Ej: Taladro Bosch GSB 550 con set de brocas para concreto"
-              value={details}
-              onChangeText={setDetails}
-              multiline
-              maxLength={300}
+            <Controller
+              control={control}
+              name="swapOfferedDetails"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <Field
+                  label="¿Qué ofreces?"
+                  placeholder="Ej: Taladro Bosch GSB 550 con set de brocas para concreto"
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  error={errors.swapOfferedDetails?.message}
+                  multiline
+                  maxLength={180}
+                />
+              )}
             />
 
-            <Field
-              label="Precio (opcional)"
-              placeholder="Ej: 5.000"
-              value={price}
-              onChangeText={setPrice}
-              keyboardType="numeric"
-              hint="Déjalo vacío si prefieres acordarlo por chat."
+            <Controller
+              control={control}
+              name="price"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <Field
+                  label="Precio (opcional)"
+                  placeholder="Ej: 5000"
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  error={errors.price?.message}
+                  keyboardType="numeric"
+                  hint="Déjalo vacío si prefieres acordarlo por chat."
+                />
+              )}
             />
 
-            <Field
-              label="Condiciones y disponibilidad"
-              placeholder="Horarios de entrega, estado del artículo, tiempo de uso..."
-              value={conditions}
-              onChangeText={setConditions}
-              multiline
-              maxLength={300}
+            <Controller
+              control={control}
+              name="conditions"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <Field
+                  label="Condiciones y disponibilidad"
+                  placeholder="Horarios de entrega, estado del artículo, tiempo de uso..."
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  error={errors.conditions?.message}
+                  multiline
+                  maxLength={500}
+                />
+              )}
             />
+
+            {feedback ? (
+              <View className="rounded-xl border border-danger/20 bg-danger-soft p-3">
+                <AppText className="text-xs font-semibold text-danger">{feedback}</AppText>
+              </View>
+            ) : null}
 
             <View className="flex-row gap-2.5 rounded-xl bg-brand-soft p-3">
               <Ionicons name="information-circle-outline" size={18} color={palette.brandDark} />
@@ -122,12 +275,10 @@ export default function OfferScreen() {
 
             <Button
               label="Enviar oferta"
+              loading={createOffer.isPending}
+              disabled={isOwnNeed || need.status !== 'open'}
               icon={<Ionicons name="send" size={16} color="#FFFFFF" />}
-              onPress={() =>
-                Alert.alert('Oferta lista', 'El envío real se conectará a Supabase en la Fase 5.', [
-                  { text: 'Entendido' },
-                ])
-              }
+              onPress={onSubmit}
             />
           </View>
         </ScrollView>

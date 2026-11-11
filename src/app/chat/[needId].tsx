@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -13,65 +14,123 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MessageBubble } from '@/components/chat';
-import { AppText, Avatar, Screen } from '@/components/ui';
-import { cn } from '@/lib/cn';
-import { getInitials } from '@/lib/format';
+import { AppText, Avatar, Button, Screen } from '@/components/ui';
+import { useAuth } from '@/features/auth/auth-provider';
+import { getChatErrorMessage } from '@/features/chat/errors';
 import {
-  CURRENT_USER_ID,
-  getMockChatMessages,
-  MOCK_ALL_OFFERS,
-  MOCK_CURRENT_PUBLIC_PROFILE,
-  MOCK_NEEDS,
-  MOCK_QUICK_REPLIES,
-  MOCK_RECEIVED_OFFERS,
-} from '@/mocks/data';
+  useChatAccess,
+  useChatMessages,
+  useChatRealtime,
+  useSendChatMessage,
+} from '@/features/chat/use-chat';
+import { useNeedDetail } from '@/features/needs/use-needs';
+import { useNeedOffers } from '@/features/offers/use-offers';
+import { cn } from '@/lib/cn';
+import { formatClp, formatDateRange, getInitials } from '@/lib/format';
 import { palette } from '@/theme/tokens';
-import type { ChatMessageWithSender } from '@/types';
+
+const QUICK_REPLIES = [
+  'Hola, ¿sigue disponible?',
+  '¿Podemos coordinar por acá?',
+  '¿A qué hora te acomoda?',
+  'Sí, me sirve. Gracias.',
+];
 
 export default function ChatScreen() {
-  const { needId, offerId } = useLocalSearchParams<{ needId: string; offerId?: string }>();
+  const { needId } = useLocalSearchParams<{ needId: string; offerId?: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { user } = useAuth();
+  const resolvedNeedId = Array.isArray(needId) ? needId[0] : needId;
   const scrollRef = useRef<ScrollView>(null);
-  const localMessageId = useRef(0);
-  const need = MOCK_NEEDS.find((item) => item.id === needId) ?? MOCK_NEEDS[0];
-  const offer = MOCK_ALL_OFFERS.find((item) => item.id === offerId);
-  const otherUser =
-    offer?.supplier && offer.supplier_id !== CURRENT_USER_ID
-      ? offer.supplier
-      : need.author && need.author.id !== CURRENT_USER_ID
-        ? need.author
-        : (MOCK_RECEIVED_OFFERS.find((item) => item.need_id === need.id)?.supplier ??
-          MOCK_CURRENT_PUBLIC_PROFILE);
-  const [messages, setMessages] = useState<ChatMessageWithSender[]>(() =>
-    getMockChatMessages(need, otherUser),
-  );
   const [input, setInput] = useState('');
-  const canSend = input.trim().length > 0;
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const needQuery = useNeedDetail(resolvedNeedId);
+  const offersQuery = useNeedOffers(resolvedNeedId);
+  const accessQuery = useChatAccess(resolvedNeedId, user?.id);
+  const messagesQuery = useChatMessages(resolvedNeedId);
+  const sendMessage = useSendChatMessage(resolvedNeedId ?? '');
+  useChatRealtime(resolvedNeedId);
 
-  const handleSend = () => {
+  const need = needQuery.data;
+  const messages = messagesQuery.data ?? [];
+  const acceptedOffer = (offersQuery.data ?? []).find((offer) => offer.status === 'accepted');
+  const isOwner = Boolean(user?.id && need?.user_id === user.id);
+  const derivedOther = messages.find((message) => message.sender_id !== user?.id)?.sender;
+  const otherUser = isOwner
+    ? (acceptedOffer?.supplier ?? derivedOther)
+    : (need?.author ?? derivedOther);
+  const otherName = otherUser?.full_name ?? 'Chat del pedido';
+  const canSend = input.trim().length > 0 && accessQuery.data === true && !sendMessage.isPending;
+  const isLoading =
+    needQuery.isLoading ||
+    accessQuery.isLoading ||
+    (accessQuery.data === true && messagesQuery.isLoading);
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    }
+  }, [messages.length]);
+
+  const handleSend = async () => {
     const text = input.trim();
 
-    if (!text) {
+    if (!text || !resolvedNeedId) {
       return;
     }
 
-    localMessageId.current += 1;
+    setFeedback(null);
 
-    const newMessage: ChatMessageWithSender = {
-      id: `local-${localMessageId.current}`,
-      need_id: need.id,
-      offer_id: 'offer-1',
-      sender_id: CURRENT_USER_ID,
-      receiver_id: otherUser.id,
-      message: text,
-      created_at: new Date().toISOString(),
-      sender: MOCK_CURRENT_PUBLIC_PROFILE,
-    };
-
-    setMessages((current) => [...current, newMessage]);
-    setInput('');
+    try {
+      await sendMessage.mutateAsync(text);
+      setInput('');
+    } catch (error) {
+      setFeedback(getChatErrorMessage(error));
+    }
   };
+
+  if (isLoading) {
+    return (
+      <Screen className="items-center justify-center gap-3">
+        <ActivityIndicator size="large" color={palette.brand} />
+        <AppText variant="muted">Cargando chat...</AppText>
+      </Screen>
+    );
+  }
+
+  if (!need) {
+    return (
+      <Screen className="items-center justify-center gap-4 px-8">
+        <Ionicons name="search-outline" size={30} color={palette.placeholder} />
+        <AppText variant="title" className="text-center">
+          No encontramos este pedido
+        </AppText>
+        <Button label="Volver" onPress={() => router.back()} />
+      </Screen>
+    );
+  }
+
+  if (accessQuery.data !== true) {
+    return (
+      <Screen className="items-center justify-center gap-4 px-8">
+        <View className="h-16 w-16 items-center justify-center rounded-full bg-slate-100">
+          <Ionicons name="lock-closed-outline" size={28} color={palette.muted} />
+        </View>
+        <AppText variant="title" className="text-center">
+          El chat aún no está disponible
+        </AppText>
+        <AppText variant="muted" className="text-center">
+          Se habilita cuando el pedido tiene una oferta aceptada y participas en la negociación.
+        </AppText>
+        <Button
+          label="Ver pedido"
+          onPress={() => router.push({ pathname: '/need/[id]', params: { id: need.id } })}
+        />
+        <Button label="Volver" variant="ghost" onPress={() => router.back()} />
+      </Screen>
+    );
+  }
 
   return (
     <Screen>
@@ -87,21 +146,18 @@ export default function ChatScreen() {
           >
             <Ionicons name="arrow-back" size={19} color={palette.ink} />
           </Pressable>
-          <Avatar size="sm" initials={getInitials(otherUser.full_name)} online />
+          <Avatar size="sm" uri={otherUser?.avatar_url} initials={getInitials(otherName) || '?'} />
           <View className="flex-1 gap-0.5">
-            <AppText variant="subtitle" className="text-[14px]">
-              {otherUser.full_name}
+            <AppText variant="subtitle" className="text-[14px]" numberOfLines={1}>
+              {otherName}
             </AppText>
-            <AppText variant="caption">En línea</AppText>
+            <AppText variant="caption">Chat del pedido</AppText>
           </View>
           <Pressable
             accessibilityLabel="Más opciones"
             className="h-10 w-10 items-center justify-center rounded-full"
             onPress={() =>
-              Alert.alert(
-                'Opciones del chat',
-                'Reportar, silenciar y bloquear llegarán en la Fase 5.',
-              )
+              Alert.alert('Opciones del chat', 'Reportar y silenciar llegarán en una próxima fase.')
             }
           >
             <Ionicons name="ellipsis-horizontal" size={19} color={palette.ink} />
@@ -113,9 +169,18 @@ export default function ChatScreen() {
           onPress={() => router.push({ pathname: '/need/[id]', params: { id: need.id } })}
         >
           <Ionicons name="cube-outline" size={16} color={palette.brandDark} />
-          <AppText className="flex-1 text-[11px] font-semibold text-brand-dark" numberOfLines={1}>
-            {need.title} · {need.budget_or_offer_details ?? 'A convenir'}
-          </AppText>
+          <View className="flex-1">
+            <AppText className="text-[11px] font-semibold text-brand-dark" numberOfLines={1}>
+              {need.title}
+            </AppText>
+            <AppText className="text-[10px] font-medium text-brand-dark/80">
+              {acceptedOffer?.price_offered !== null && acceptedOffer?.price_offered !== undefined
+                ? formatClp(acceptedOffer.price_offered)
+                : (acceptedOffer?.swap_offered_details ?? 'A convenir')}
+              {' · '}
+              {formatDateRange(need.start_date, need.end_date)}
+            </AppText>
+          </View>
           <Ionicons name="chevron-forward" size={14} color={palette.brandDark} />
         </Pressable>
 
@@ -126,23 +191,41 @@ export default function ChatScreen() {
           keyboardShouldPersistTaps="handled"
           onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
         >
-          <View className="gap-3">
-            {messages.map((message, index) => {
-              const mine = message.sender_id === CURRENT_USER_ID;
-              const previous = messages[index - 1];
-              const showSender = !mine && (!previous || previous.sender_id !== message.sender_id);
+          {messages.length > 0 ? (
+            <View className="gap-3">
+              {messages.map((message, index) => {
+                const mine = message.sender_id === user?.id;
+                const previous = messages[index - 1];
+                const showSender = !mine && (!previous || previous.sender_id !== message.sender_id);
 
-              return (
-                <MessageBubble
-                  key={message.id}
-                  message={message}
-                  mine={mine}
-                  showSender={showSender}
-                />
-              );
-            })}
-          </View>
+                return (
+                  <MessageBubble
+                    key={message.id}
+                    message={message}
+                    mine={mine}
+                    showSender={showSender}
+                  />
+                );
+              })}
+            </View>
+          ) : (
+            <View className="items-center gap-2 rounded-card border border-dashed border-slate-300 bg-surface px-6 py-10">
+              <Ionicons name="chatbubble-ellipses-outline" size={28} color={palette.placeholder} />
+              <AppText variant="subtitle" className="text-center">
+                Aún no hay mensajes
+              </AppText>
+              <AppText variant="caption" className="text-center">
+                Saluda y coordinen los detalles de la entrega.
+              </AppText>
+            </View>
+          )}
         </ScrollView>
+
+        {feedback ? (
+          <View className="mx-4 mb-2 rounded-xl border border-danger/20 bg-danger-soft p-2.5">
+            <AppText className="text-[11px] font-semibold text-danger">{feedback}</AppText>
+          </View>
+        ) : null}
 
         <ScrollView
           horizontal
@@ -151,7 +234,7 @@ export default function ChatScreen() {
           contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 10, gap: 8 }}
           keyboardShouldPersistTaps="handled"
         >
-          {MOCK_QUICK_REPLIES.map((reply) => (
+          {QUICK_REPLIES.map((reply) => (
             <Pressable
               key={reply}
               className="rounded-full border border-line bg-surface px-3 py-2"
@@ -170,7 +253,9 @@ export default function ChatScreen() {
             <Pressable
               accessibilityLabel="Adjuntar"
               className="h-11 w-11 items-center justify-center rounded-full border border-line"
-              onPress={() => Alert.alert('Adjuntos', 'Las fotos en el chat llegarán en la Fase 5.')}
+              onPress={() =>
+                Alert.alert('Adjuntos', 'Las fotos en el chat llegarán en una próxima fase.')
+              }
             >
               <Ionicons name="add" size={21} color={palette.muted} />
             </Pressable>
@@ -180,6 +265,7 @@ export default function ChatScreen() {
               placeholder="Escribe un mensaje..."
               placeholderTextColor={palette.placeholder}
               multiline
+              maxLength={2000}
               className="max-h-24 min-h-11 flex-1 rounded-2xl border border-line bg-bg px-3.5 py-2.5 text-sm text-ink"
             />
             <Pressable
@@ -191,7 +277,11 @@ export default function ChatScreen() {
                 canSend ? 'bg-brand' : 'bg-slate-200',
               )}
             >
-              <Ionicons name="send" size={17} color={canSend ? '#FFFFFF' : palette.placeholder} />
+              {sendMessage.isPending ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Ionicons name="send" size={17} color={canSend ? '#FFFFFF' : palette.placeholder} />
+              )}
             </Pressable>
           </View>
         </View>
