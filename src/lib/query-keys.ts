@@ -10,9 +10,9 @@ export const queryKeys = {
   location: ['viewer-location'] as const,
   needs: {
     all: ['needs'] as const,
-    nearby: (filters: NeedFilters & { latitude: number; longitude: number }) =>
+    nearby: (filters: NeedFilters & { latitude: number; longitude: number; viewerId?: string }) =>
       ['needs', 'nearby', filters] as const,
-    recent: (filters: NeedFilters) => ['needs', 'recent', filters] as const,
+    recent: (filters: NeedFilters & { viewerId?: string }) => ['needs', 'recent', filters] as const,
     detail: (needId: string) => ['needs', 'detail', needId] as const,
     mine: (userId: string) => ['needs', 'mine', userId] as const,
   },

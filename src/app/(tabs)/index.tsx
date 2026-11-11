@@ -28,12 +28,12 @@ const DEAL_FILTERS: { value?: DealType; label: string }[] = [
 
 export default function ExploreScreen() {
   const router = useRouter();
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   const [dealType, setDealType] = useState<DealType | undefined>();
   const [categoryId, setCategoryId] = useState<number | undefined>();
   const { location, requestLocation, isRequesting } = useViewerLocation();
   const categoriesQuery = useCategories();
-  const needsQuery = useExploreNeeds({ categoryId, dealType }, location);
+  const needsQuery = useExploreNeeds({ categoryId, dealType }, location, user?.id);
   const fullName = profile?.full_name?.trim() || 'vecino';
   const firstName = fullName.split(' ')[0];
   const neighborhood = profile?.neighborhood?.trim() || 'Elige tu barrio';

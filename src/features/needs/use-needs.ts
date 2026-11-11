@@ -23,25 +23,30 @@ export function useCategories() {
   });
 }
 
-export function useExploreNeeds(filters: NeedFilters, location: ViewerLocation | null) {
+export function useExploreNeeds(
+  filters: NeedFilters,
+  location: ViewerLocation | null,
+  viewerId?: string,
+) {
   const hasLocation = Boolean(location);
+  const feedOptions = { ...filters, viewerId };
 
   return useQuery({
     queryKey: hasLocation
       ? queryKeys.needs.nearby({
-          ...filters,
+          ...feedOptions,
           latitude: location?.latitude ?? 0,
           longitude: location?.longitude ?? 0,
         })
-      : queryKeys.needs.recent(filters),
+      : queryKeys.needs.recent(feedOptions),
     queryFn: () =>
       hasLocation
         ? listNearbyNeeds({
-            ...filters,
+            ...feedOptions,
             latitude: location?.latitude as number,
             longitude: location?.longitude as number,
           })
-        : listRecentNeeds(filters),
+        : listRecentNeeds(feedOptions),
   });
 }
 

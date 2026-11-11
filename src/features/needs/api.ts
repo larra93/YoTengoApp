@@ -42,6 +42,7 @@ type NeedRowWithRelations = Database['public']['Tables']['needs']['Row'] & {
 export interface FeedOptions extends NeedFilters {
   limit?: number;
   radiusKm?: number;
+  viewerId?: string;
 }
 
 export interface NearbyFeedOptions extends FeedOptions {
@@ -176,6 +177,10 @@ export async function listRecentNeeds(options: FeedOptions = {}) {
 
   if (options.dealType) {
     query = query.eq('deal_type', options.dealType);
+  }
+
+  if (options.viewerId) {
+    query = query.neq('user_id', options.viewerId);
   }
 
   const { data, error } = await query;
