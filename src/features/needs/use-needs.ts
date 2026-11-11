@@ -3,9 +3,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { queryKeys, type NeedFilters } from '@/lib/query-keys';
 
 import {
+  cancelNeed,
+  completeNeed,
   createNeed,
   getNeedById,
   listCategories,
+  listMyNeeds,
   listNearbyNeeds,
   listRecentNeeds,
   type CreateNeedInput,
@@ -47,6 +50,44 @@ export function useNeedDetail(needId: string | undefined) {
     queryKey: queryKeys.needs.detail(needId ?? ''),
     queryFn: () => getNeedById(needId as string),
     enabled: Boolean(needId),
+  });
+}
+
+export function useMyNeeds(userId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.needs.mine(userId ?? ''),
+    queryFn: () => listMyNeeds(userId as string),
+    enabled: Boolean(userId),
+  });
+}
+
+export function useCompleteNeed() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (needId: string) => completeNeed(needId),
+    onSuccess: async (need) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.needs.all }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.needs.detail(need.id) }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.offers.all }),
+      ]);
+    },
+  });
+}
+
+export function useCancelNeed() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (needId: string) => cancelNeed(needId),
+    onSuccess: async (need) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.needs.all }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.needs.detail(need.id) }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.offers.all }),
+      ]);
+    },
   });
 }
 

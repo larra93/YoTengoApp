@@ -14,6 +14,8 @@ Fase 3 (pedidos): feed conectado a Supabase con categorías, filtros, ubicación
 
 Fase 4 (ofertas y chat): envío de ofertas con foto y precio, bandejas de ofertas recibidas/enviadas, aceptar/rechazar con match transaccional, chat habilitado por oferta aceptada y actualizaciones en tiempo real con Supabase Realtime.
 
+Fase 5 (reseñas y perfil): reseñas con estrellas vía `create_review`, reputación real del perfil, listado de mis pedidos con estados, completar/cancelar pedido desde el detalle, sección de reseñas del trato y badge dinámico de negociaciones.
+
 ## Requisitos
 
 - Node.js 20 o superior.
@@ -74,10 +76,9 @@ El onboarding se exige mientras el perfil no tenga barrio. El avatar se guarda e
 
 ```text
 src/app/            Rutas de Expo Router (auth, onboarding, tabs)
-src/components/     Componentes de UI, auth, perfil, pedidos, ofertas y chat
-src/features/       Lógica de auth, perfil, pedidos, ofertas y chat
+src/components/     Componentes de UI, auth, perfil, pedidos, ofertas, chat y reseñas
+src/features/       Lógica de auth, perfil, pedidos, ofertas, chat y reseñas
 src/lib/            Supabase, query client, formato y utilidades
-src/mocks/          Datos de demostración de las pantallas pendientes
 src/theme/          Tokens visuales
 src/types/          Tipos de dominio y tipos generados de Supabase
 src/validation/     Esquemas Zod de formularios

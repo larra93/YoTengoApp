@@ -4,14 +4,17 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Alert, Pressable, ScrollView, View } from 'react-native';
 
 import { CategoryThumb } from '@/components/needs';
-import { AppText, Avatar, Badge, Screen, SectionHeader } from '@/components/ui';
+import { ReviewCard, StarRating } from '@/components/reviews';
+import { AppText, Avatar, Badge, Button, Screen, SectionHeader } from '@/components/ui';
 import { useAuth } from '@/features/auth/auth-provider';
+import { useMyNeeds } from '@/features/needs/use-needs';
 import { useProfileStats } from '@/features/profile/use-profile-stats';
+import { useReviewsForUser } from '@/features/reviews/use-reviews';
 import { cn } from '@/lib/cn';
 import { formatDateRange, getInitials } from '@/lib/format';
 import { NEED_STATUS_LABEL } from '@/lib/labels';
-import { MOCK_MY_NEEDS } from '@/mocks/data';
 import { palette } from '@/theme/tokens';
+import type { NeedStatus } from '@/types';
 
 const MENU_ITEMS: {
   label: string;
@@ -26,10 +29,19 @@ const MENU_ITEMS: {
   { label: 'Cerrar sesión', icon: 'log-out-outline', danger: true },
 ];
 
+const NEED_STATUS_TONE: Record<NeedStatus, 'open' | 'success' | 'neutral' | 'danger'> = {
+  open: 'open',
+  matched: 'neutral',
+  completed: 'success',
+  cancelled: 'danger',
+};
+
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, profile, signOut } = useAuth();
   const statsQuery = useProfileStats(user?.id);
+  const needsQuery = useMyNeeds(user?.id);
+  const reviewsQuery = useReviewsForUser(user?.id);
   const fullName = profile?.full_name?.trim() || 'Vecino';
   const neighborhood = profile?.neighborhood?.trim() || 'Sin barrio';
   const stats = [
@@ -37,6 +49,8 @@ export default function ProfileScreen() {
     { label: 'Ofertas', value: statsQuery.data ? statsQuery.data.offers : '—' },
     { label: 'Matches', value: statsQuery.data ? statsQuery.data.matches : '—' },
   ];
+  const myNeeds = (needsQuery.data ?? []).slice(0, 3);
+  const recentReviews = (reviewsQuery.data ?? []).slice(0, 2);
 
   const handleSignOut = () => {
     Alert.alert('Cerrar sesión', '¿Quieres salir de tu cuenta?', [
@@ -61,6 +75,21 @@ export default function ProfileScreen() {
       return;
     }
 
+    if (label === 'Mis ofertas') {
+      router.push('/(tabs)/negotiations');
+      return;
+    }
+
+    if (label === 'Reseñas y reputación') {
+      router.push('/reviews');
+      return;
+    }
+
+    if (label === 'Métodos de contacto' || label === 'Configuración') {
+      router.push('/edit-profile');
+      return;
+    }
+
     Alert.alert(label, 'Esta sección se habilitará en una próxima fase.');
   };
 
@@ -74,7 +103,7 @@ export default function ProfileScreen() {
           <AppText variant="title">Mi perfil</AppText>
           <Pressable
             className="h-11 w-11 items-center justify-center rounded-full border border-line bg-surface"
-            onPress={() => handleMenuPress('Configuración')}
+            onPress={() => router.push('/edit-profile')}
           >
             <Ionicons name="settings-outline" size={19} color={palette.ink} />
           </Pressable>
@@ -146,41 +175,82 @@ export default function ProfileScreen() {
           className="mt-6 px-5"
           title="Mis pedidos"
           actionLabel="Ver todos"
-          onAction={() => handleMenuPress('Mis pedidos')}
+          onAction={() => router.push('/my-needs')}
         />
 
         <View className="mt-3 gap-2 px-5">
-          {MOCK_MY_NEEDS.slice(0, 3).map((need) => (
-            <Pressable
-              key={need.id}
-              className="flex-row items-center gap-3 rounded-xl border border-line bg-surface p-3"
-              onPress={() => router.push({ pathname: '/need/[id]', params: { id: need.id } })}
-            >
-              <CategoryThumb
-                category={need.category}
-                className="h-11 w-11 rounded-lg"
-                iconSize={20}
+          {myNeeds.length > 0 ? (
+            myNeeds.map((need) => (
+              <Pressable
+                key={need.id}
+                className="flex-row items-center gap-3 rounded-xl border border-line bg-surface p-3"
+                onPress={() => router.push({ pathname: '/need/[id]', params: { id: need.id } })}
+              >
+                <CategoryThumb
+                  category={need.category}
+                  className="h-11 w-11 rounded-lg"
+                  iconSize={20}
+                />
+                <View className="flex-1 gap-0.5">
+                  <AppText variant="subtitle" className="text-[13px]" numberOfLines={1}>
+                    {need.title}
+                  </AppText>
+                  <AppText variant="caption">
+                    {formatDateRange(need.start_date, need.end_date)} · {need.offers_count ?? 0}{' '}
+                    ofertas
+                  </AppText>
+                </View>
+                <Badge
+                  label={NEED_STATUS_LABEL[need.status]}
+                  tone={NEED_STATUS_TONE[need.status]}
+                />
+              </Pressable>
+            ))
+          ) : (
+            <View className="items-center gap-2 rounded-card border border-dashed border-slate-300 bg-surface px-6 py-6">
+              <Ionicons name="document-text-outline" size={24} color={palette.placeholder} />
+              <AppText variant="caption" className="text-center">
+                Aún no publicas pedidos.
+              </AppText>
+              <Button
+                size="sm"
+                variant="secondary"
+                label="Publicar pedido"
+                onPress={() => router.push('/publish')}
               />
+            </View>
+          )}
+        </View>
+
+        <SectionHeader
+          className="mt-6 px-5"
+          title="Reseñas recientes"
+          actionLabel="Ver todas"
+          onAction={() => router.push('/reviews')}
+        />
+
+        <View className="mt-3 gap-3 px-5">
+          {recentReviews.length > 0 ? (
+            recentReviews.map((review) => <ReviewCard key={review.id} review={review} showNeed />)
+          ) : (
+            <Pressable
+              className="flex-row items-center gap-3 rounded-card border border-dashed border-slate-300 bg-surface p-4"
+              onPress={() => router.push('/reviews')}
+            >
+              <View className="h-10 w-10 items-center justify-center rounded-full bg-brand-soft">
+                <StarRating value={0} size={16} />
+              </View>
               <View className="flex-1 gap-0.5">
-                <AppText variant="subtitle" className="text-[13px]" numberOfLines={1}>
-                  {need.title}
+                <AppText variant="subtitle" className="text-[13px]">
+                  Aún no tienes reseñas
                 </AppText>
                 <AppText variant="caption">
-                  {formatDateRange(need.start_date, need.end_date)} · {need.offers_count} ofertas
+                  Completa un trato para que la otra persona te califique.
                 </AppText>
               </View>
-              <Badge
-                label={NEED_STATUS_LABEL[need.status]}
-                tone={
-                  need.status === 'completed'
-                    ? 'success'
-                    : need.status === 'open'
-                      ? 'open'
-                      : 'neutral'
-                }
-              />
+              <Ionicons name="chevron-forward" size={16} color={palette.placeholder} />
             </Pressable>
-          ))}
+          )}
         </View>
 
         <View className="mx-5 mt-6 overflow-hidden rounded-card border border-line bg-surface">

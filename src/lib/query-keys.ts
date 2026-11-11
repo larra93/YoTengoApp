@@ -14,6 +14,11 @@ export const queryKeys = {
       ['needs', 'nearby', filters] as const,
     recent: (filters: NeedFilters) => ['needs', 'recent', filters] as const,
     detail: (needId: string) => ['needs', 'detail', needId] as const,
+    mine: (userId: string) => ['needs', 'mine', userId] as const,
+  },
+  reviews: {
+    byUser: (userId: string) => ['reviews', 'user', userId] as const,
+    byNeed: (needId: string) => ['reviews', 'need', needId] as const,
   },
   offers: {
     all: ['offers'] as const,

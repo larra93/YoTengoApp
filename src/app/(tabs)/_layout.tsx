@@ -3,10 +3,17 @@ import { Tabs } from 'expo-router';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useAuth } from '@/features/auth/auth-provider';
+import { useReceivedOffers } from '@/features/offers/use-offers';
 import { palette } from '@/theme/tokens';
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
+  const { user } = useAuth();
+  const receivedOffersQuery = useReceivedOffers(user?.id);
+  const pendingOffers = (receivedOffersQuery.data ?? []).filter(
+    (offer) => offer.status === 'pending',
+  ).length;
 
   return (
     <Tabs
@@ -52,7 +59,7 @@ export default function TabsLayout() {
         name="negotiations"
         options={{
           title: 'Negociaciones',
-          tabBarBadge: 3,
+          tabBarBadge: pendingOffers > 0 ? pendingOffers : undefined,
           tabBarBadgeStyle: { backgroundColor: palette.accent, fontSize: 9, fontWeight: '800' },
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="chatbubbles-outline" size={size} color={color} />

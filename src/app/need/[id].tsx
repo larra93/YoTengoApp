@@ -5,19 +5,30 @@ import { ActivityIndicator, Alert, Pressable, ScrollView, View } from 'react-nat
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CategoryThumb } from '@/components/needs';
+import { ReviewCard } from '@/components/reviews';
 import { AppText, Avatar, Badge, Button, Screen, type BadgeTone } from '@/components/ui';
 import { useAuth } from '@/features/auth/auth-provider';
-import { useNeedDetail } from '@/features/needs/use-needs';
+import { getNeedErrorMessage } from '@/features/needs/errors';
+import { useCancelNeed, useCompleteNeed, useNeedDetail } from '@/features/needs/use-needs';
+import { useNeedOffers } from '@/features/offers/use-offers';
+import { useReviewsByNeed } from '@/features/reviews/use-reviews';
 import { cn } from '@/lib/cn';
 import { formatDateRange, formatDistance, getInitials } from '@/lib/format';
-import { DEAL_TYPE_ICON, DEAL_TYPE_LABEL } from '@/lib/labels';
+import { DEAL_TYPE_ICON, DEAL_TYPE_LABEL, NEED_STATUS_LABEL } from '@/lib/labels';
 import { palette } from '@/theme/tokens';
-import type { DealType } from '@/types';
+import type { DealType, NeedStatus } from '@/types';
 
 const DEAL_TONE: Record<DealType, BadgeTone> = {
   rent: 'rent',
   loan: 'loan',
   swap: 'swap',
+};
+
+const NEED_STATUS_TONE: Record<NeedStatus, BadgeTone> = {
+  open: 'open',
+  matched: 'neutral',
+  completed: 'success',
+  cancelled: 'danger',
 };
 
 interface DetailRowProps {
@@ -48,10 +59,80 @@ export default function NeedDetailScreen() {
   const { user } = useAuth();
   const needId = Array.isArray(id) ? id[0] : id;
   const needQuery = useNeedDetail(needId);
+  const offersQuery = useNeedOffers(needId);
+  const reviewsQuery = useReviewsByNeed(needId);
+  const completeNeed = useCompleteNeed();
+  const cancelNeed = useCancelNeed();
   const need = needQuery.data;
   const authorName = need?.author?.full_name ?? 'Vecino';
   const isOpen = need?.status === 'open';
   const isOwnNeed = Boolean(user?.id && need?.user_id === user.id);
+  const acceptedOffer = (offersQuery.data ?? []).find((offer) => offer.status === 'accepted');
+  const isSupplier = Boolean(user?.id && acceptedOffer?.supplier_id === user.id);
+  const isParticipant = isOwnNeed || isSupplier;
+  const myReview = (reviewsQuery.data ?? []).find((review) => review.reviewer_id === user?.id);
+  const canReview = need?.status === 'completed' && isParticipant && !myReview;
+  const reviews = reviewsQuery.data ?? [];
+
+  const handleComplete = () => {
+    if (!need) {
+      return;
+    }
+
+    Alert.alert(
+      'Marcar como completado',
+      '¿Confirmas que el trato se realizó? Luego podrán calificarse.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Completar',
+          onPress: async () => {
+            try {
+              await completeNeed.mutateAsync(need.id);
+            } catch (error) {
+              Alert.alert('No pudimos completar', getNeedErrorMessage(error));
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  const handleCancel = () => {
+    if (!need) {
+      return;
+    }
+
+    Alert.alert(
+      'Cancelar pedido',
+      '¿Quieres cancelar este pedido? Esta acción no se puede deshacer.',
+      [
+        { text: 'Volver', style: 'cancel' },
+        {
+          text: 'Cancelar pedido',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await cancelNeed.mutateAsync(need.id);
+            } catch (error) {
+              Alert.alert('No pudimos cancelar', getNeedErrorMessage(error));
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  const openChat = () => {
+    if (!need) {
+      return;
+    }
+
+    router.push({
+      pathname: '/chat/[needId]',
+      params: { needId: need.id, offerId: acceptedOffer?.id },
+    });
+  };
 
   if (needQuery.isLoading) {
     return (
@@ -106,12 +187,13 @@ export default function NeedDetailScreen() {
           ) : (
             <CategoryThumb category={need.category} className="h-full w-full" iconSize={64} />
           )}
-          <View className="absolute left-3 top-3 flex-row gap-2">
+          <View className="absolute left-3 top-3 flex-row flex-wrap gap-2">
             <Badge
               label={DEAL_TYPE_LABEL[need.deal_type]}
               tone={DEAL_TONE[need.deal_type]}
               icon={DEAL_TYPE_ICON[need.deal_type]}
             />
+            <Badge label={NEED_STATUS_LABEL[need.status]} tone={NEED_STATUS_TONE[need.status]} />
             {need.category ? <Badge label={need.category.name} tone="neutral" /> : null}
           </View>
           {need.distance_km !== undefined ? (
@@ -132,7 +214,7 @@ export default function NeedDetailScreen() {
             </View>
             <View className="flex-row items-center gap-1">
               <Ionicons name="chatbubble-ellipses-outline" size={13} color={palette.muted} />
-              <AppText variant="caption">{need.offers_count} ofertas recibidas</AppText>
+              <AppText variant="caption">{need.offers_count ?? 0} ofertas recibidas</AppText>
             </View>
           </View>
         </View>
@@ -215,6 +297,22 @@ export default function NeedDetailScreen() {
           </View>
           <Ionicons name="chevron-forward" size={17} color={palette.placeholder} />
         </Pressable>
+
+        {need.status === 'completed' ? (
+          <View className="mt-6 gap-2 px-5">
+            <AppText variant="subtitle">Reseñas del trato</AppText>
+            {reviews.length > 0 ? (
+              reviews.map((review) => <ReviewCard key={review.id} review={review} />)
+            ) : (
+              <View className="items-center gap-1 rounded-card border border-dashed border-slate-300 bg-surface px-5 py-6">
+                <Ionicons name="star-outline" size={26} color={palette.placeholder} />
+                <AppText variant="caption" className="text-center">
+                  Aún no hay reseñas de este trato.
+                </AppText>
+              </View>
+            )}
+          </View>
+        ) : null}
       </ScrollView>
 
       <View
@@ -228,13 +326,40 @@ export default function NeedDetailScreen() {
               {need.budget_or_offer_details ?? 'A convenir'}
             </AppText>
           </View>
-          {isOwnNeed ? (
+
+          {canReview ? (
+            <Button
+              label="Calificar trato"
+              className="flex-1"
+              icon={<Ionicons name="star-outline" size={18} color="#FFFFFF" />}
+              onPress={() =>
+                router.push({ pathname: '/review/[needId]', params: { needId: need.id } })
+              }
+            />
+          ) : isOwnNeed && need.status === 'matched' ? (
+            <Button
+              label="Marcar completado"
+              className="flex-1"
+              loading={completeNeed.isPending}
+              icon={<Ionicons name="checkmark-circle-outline" size={18} color="#FFFFFF" />}
+              onPress={handleComplete}
+            />
+          ) : isOwnNeed ? (
             <Button
               label="Ver negociaciones"
               className="flex-1"
               icon={<Ionicons name="chatbubbles-outline" size={18} color="#FFFFFF" />}
               onPress={() => router.push('/(tabs)/negotiations')}
             />
+          ) : isSupplier && need.status === 'matched' ? (
+            <Button
+              label="Abrir chat"
+              className="flex-1"
+              icon={<Ionicons name="chatbubble-outline" size={18} color="#FFFFFF" />}
+              onPress={openChat}
+            />
+          ) : need.status === 'completed' && myReview ? (
+            <Button label="Reseña enviada" disabled className="flex-1" />
           ) : (
             <Button
               label={isOpen ? 'Tengo esto' : 'Pedido no disponible'}
@@ -247,6 +372,18 @@ export default function NeedDetailScreen() {
             />
           )}
         </View>
+
+        {isOwnNeed && (need.status === 'open' || need.status === 'matched') ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            label="Cancelar pedido"
+            textClassName="text-danger"
+            loading={cancelNeed.isPending}
+            onPress={handleCancel}
+            className="mt-2"
+          />
+        ) : null}
       </View>
     </Screen>
   );

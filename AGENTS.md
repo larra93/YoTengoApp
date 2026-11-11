@@ -70,6 +70,9 @@ src/
     need/[id].tsx      Detalle de un pedido
     offer/[needId].tsx Formulario de oferta
     chat/[needId].tsx  Chat del pedido
+    review/[needId].tsx Calificar un trato completado
+    reviews.tsx        Reseñas recibidas y reputación
+    my-needs.tsx       Mis pedidos con todos los estados
   components/
     ui/                Componentes base (Screen, Button, Card, Field...)
     auth/              Layout compartido de autenticación
@@ -77,14 +80,15 @@ src/
     needs/             Tarjetas y miniaturas de pedidos
     offers/            Tarjetas de ofertas
     chat/              Burbujas de mensajes
+    reviews/           Estrellas y tarjetas de reseñas
   features/
     auth/              Sesión, perfil, API y errores de Supabase Auth
     profile/           Estadísticas del perfil
-    needs/             Feed, detalle, publicación, ubicación y storage
+    needs/             Feed, detalle, publicación, ubicación, storage y estados
     offers/            Crear/listar ofertas, aceptar/rechazar y realtime
     chat/              Historial, envío de mensajes, acceso y realtime
+    reviews/           Listar y crear reseñas con RPC `create_review`
   lib/                 Utilidades, Supabase, query client, formato
-  mocks/               Datos de demostración de pantallas pendientes
   theme/               Tokens de color y radios
   types/               Tipos de dominio (espejo del esquema)
   validation/          Esquemas Zod de formularios
@@ -123,6 +127,6 @@ src/
 - Fase 2: autenticación email/password, sesión persistente, onboarding y perfil.
 - Fase 3: feed y publicación de pedidos con TanStack Query, ubicación/RPC `nearby_needs`, filtros y foto.
 - Fase 4: ofertas con foto/precio, match (`accept_offer`/`reject_offer`), negociaciones y chat realtime por `need_id`.
-- Fase 5: reseñas, reputación, notificaciones y pulido.
+- Fase 5: reseñas (`create_review` + trigger de reputación), perfil y pedidos con datos reales, estados de trato (completar/cancelar) y badge dinámico de negociaciones.
 
 La app requiere `.env` con credenciales de Supabase desde la Fase 2. No importar `service_role` ni claves secretas en ningún archivo del cliente.

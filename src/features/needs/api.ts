@@ -234,6 +234,70 @@ export async function getNeedById(needId: string) {
   } satisfies NeedWithRelations;
 }
 
+export async function listMyNeeds(userId: string) {
+  const { data, error } = await supabase
+    .from('needs')
+    .select(NEED_SELECT)
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  const rows = data as NeedRowWithRelations[];
+
+  if (rows.length === 0) {
+    return [];
+  }
+
+  const { data: offers, error: offersError } = await supabase
+    .from('offers')
+    .select('need_id')
+    .in(
+      'need_id',
+      rows.map((row) => row.id),
+    );
+
+  if (offersError) {
+    throw offersError;
+  }
+
+  const counts = new Map<string, number>();
+
+  for (const offer of offers ?? []) {
+    counts.set(offer.need_id, (counts.get(offer.need_id) ?? 0) + 1);
+  }
+
+  return rows.map(
+    (row) =>
+      ({
+        ...mapNeedRow(row),
+        offers_count: counts.get(row.id) ?? 0,
+      }) satisfies NeedWithRelations,
+  );
+}
+
+export async function completeNeed(needId: string) {
+  const { data, error } = await supabase.rpc('complete_need', { p_need_id: needId });
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+export async function cancelNeed(needId: string) {
+  const { data, error } = await supabase.rpc('cancel_need', { p_need_id: needId });
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
 export async function setMyLocation(latitude: number, longitude: number) {
   const { error } = await supabase.rpc('set_my_location', {
     p_lat: latitude,

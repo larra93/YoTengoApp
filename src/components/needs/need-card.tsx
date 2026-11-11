@@ -4,8 +4,8 @@ import { Pressable, View } from 'react-native';
 import { AppText, Avatar, Badge, type BadgeTone } from '@/components/ui';
 import { cn } from '@/lib/cn';
 import { formatDateRange, formatDistance, getInitials } from '@/lib/format';
-import { DEAL_TYPE_ICON, DEAL_TYPE_LABEL } from '@/lib/labels';
-import type { DealType, NeedWithRelations } from '@/types';
+import { DEAL_TYPE_ICON, DEAL_TYPE_LABEL, NEED_STATUS_LABEL } from '@/lib/labels';
+import type { DealType, NeedStatus, NeedWithRelations } from '@/types';
 
 import { CategoryThumb } from './category-thumb';
 
@@ -15,13 +15,21 @@ const DEAL_TONE: Record<DealType, BadgeTone> = {
   swap: 'swap',
 };
 
+const NEED_STATUS_TONE: Record<NeedStatus, BadgeTone> = {
+  open: 'open',
+  matched: 'loan',
+  completed: 'success',
+  cancelled: 'danger',
+};
+
 export interface NeedCardProps {
   need: NeedWithRelations;
   onPress?: () => void;
+  showStatus?: boolean;
   className?: string;
 }
 
-export function NeedCard({ need, onPress, className }: NeedCardProps) {
+export function NeedCard({ need, onPress, showStatus = false, className }: NeedCardProps) {
   const authorName = need.author?.full_name ?? 'Vecino';
 
   return (
@@ -36,12 +44,20 @@ export function NeedCard({ need, onPress, className }: NeedCardProps) {
         <CategoryThumb category={need.category} className="h-[96px] w-[78px] rounded-xl" />
 
         <View className="flex-1 gap-1.5">
-          <View className="flex-row items-center justify-between gap-2">
-            <Badge
-              label={DEAL_TYPE_LABEL[need.deal_type]}
-              tone={DEAL_TONE[need.deal_type]}
-              icon={DEAL_TYPE_ICON[need.deal_type]}
-            />
+          <View className="flex-row flex-wrap items-center justify-between gap-2">
+            <View className="flex-row flex-wrap items-center gap-1.5">
+              <Badge
+                label={DEAL_TYPE_LABEL[need.deal_type]}
+                tone={DEAL_TONE[need.deal_type]}
+                icon={DEAL_TYPE_ICON[need.deal_type]}
+              />
+              {showStatus ? (
+                <Badge
+                  label={NEED_STATUS_LABEL[need.status]}
+                  tone={NEED_STATUS_TONE[need.status]}
+                />
+              ) : null}
+            </View>
             {need.distance_km !== undefined ? (
               <View className="flex-row items-center gap-0.5">
                 <Ionicons name="location-outline" size={11} color="#64748B" />

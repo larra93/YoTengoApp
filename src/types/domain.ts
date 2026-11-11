@@ -1,4 +1,4 @@
-import type { Category, ChatMessage, Need, Offer, Profile } from './db';
+import type { Category, ChatMessage, Need, Offer, Profile, Review } from './db';
 
 export type PublicProfile = Pick<
   Profile,
@@ -23,6 +23,12 @@ export type OfferWithSupplier = OfferWithRelations;
 
 export interface ChatMessageWithSender extends ChatMessage {
   sender: PublicProfile | null;
+}
+
+export interface ReviewWithRelations extends Review {
+  reviewer: PublicProfile | null;
+  reviewee: PublicProfile | null;
+  need?: { id: string; title: string } | null;
 }
 
 export interface ProfileStats {
