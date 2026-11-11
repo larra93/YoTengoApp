@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Alert, Pressable, ScrollView, View } from 'react-native';
 
 import { CategoryThumb } from '@/components/needs';
-import { ReviewCard, StarRating } from '@/components/reviews';
+import { ReviewCard } from '@/components/reviews';
 import { AppText, Avatar, Badge, Button, Screen, SectionHeader } from '@/components/ui';
 import { useAuth } from '@/features/auth/auth-provider';
 import { useMyNeeds } from '@/features/needs/use-needs';
@@ -238,7 +238,7 @@ export default function ProfileScreen() {
               onPress={() => router.push('/reviews')}
             >
               <View className="h-10 w-10 items-center justify-center rounded-full bg-brand-soft">
-                <StarRating value={0} size={16} />
+                <Ionicons name="star-outline" size={18} color={palette.brandDark} />
               </View>
               <View className="flex-1 gap-0.5">
                 <AppText variant="subtitle" className="text-[13px]">

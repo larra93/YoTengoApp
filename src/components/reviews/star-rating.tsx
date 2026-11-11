@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, View } from 'react-native';
 
+import { cn } from '@/lib/cn';
 import { palette } from '@/theme/tokens';
 
 export interface StarRatingProps {
@@ -14,7 +15,7 @@ const STARS = [1, 2, 3, 4, 5] as const;
 
 export function StarRating({ value, onChange, size = 18, className }: StarRatingProps) {
   return (
-    <View className={`flex-row items-center gap-1 ${className ?? ''}`}>
+    <View className={cn('flex-row items-center gap-1', className)}>
       {STARS.map((star) => {
         const filled = star <= value;
         const icon = (
