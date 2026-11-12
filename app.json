@@ -52,6 +52,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "cfd9d838-27c7-4df0-ac4a-eb752600a619"
+      }
+    },
+    "owner": "flarraguibel"
   }
 }
