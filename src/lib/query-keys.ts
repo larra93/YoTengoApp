@@ -26,6 +26,7 @@ export const queryKeys = {
     received: (userId: string) => ['offers', 'received', userId] as const,
     sent: (userId: string) => ['offers', 'sent', userId] as const,
     byNeed: (needId: string) => ['offers', 'need', needId] as const,
+    detail: (offerId: string) => ['offers', 'detail', offerId] as const,
   },
   chat: {
     byNeed: (needId: string) => ['chat', needId] as const,

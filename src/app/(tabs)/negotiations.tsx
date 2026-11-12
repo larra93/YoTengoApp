@@ -1,19 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
 
 import { OfferCard } from '@/components/offers';
 import { AppText, Screen } from '@/components/ui';
 import { useAuth } from '@/features/auth/auth-provider';
-import { getOfferErrorMessage } from '@/features/offers/errors';
-import {
-  useAcceptOffer,
-  useOffersRealtime,
-  useReceivedOffers,
-  useRejectOffer,
-  useSentOffers,
-} from '@/features/offers/use-offers';
+import { useOfferActions } from '@/features/offers/use-offer-actions';
+import { useOffersRealtime, useReceivedOffers, useSentOffers } from '@/features/offers/use-offers';
 import { cn } from '@/lib/cn';
 import { palette } from '@/theme/tokens';
 
@@ -25,8 +19,7 @@ export default function NegotiationsScreen() {
   const [tab, setTab] = useState<NegotiationTab>('received');
   const receivedQuery = useReceivedOffers(user?.id);
   const sentQuery = useSentOffers(user?.id);
-  const acceptOffer = useAcceptOffer();
-  const rejectOffer = useRejectOffer();
+  const { handleAccept, handleReject } = useOfferActions();
   useOffersRealtime(user?.id);
 
   const offers = (tab === 'received' ? receivedQuery.data : sentQuery.data) ?? [];
@@ -35,44 +28,6 @@ export default function NegotiationsScreen() {
   const pendingReceived = (receivedQuery.data ?? []).filter(
     (offer) => offer.status === 'pending',
   ).length;
-
-  const handleAccept = (offerId: string, supplierName: string) => {
-    Alert.alert('Aceptar oferta', `¿Confirmas la oferta de ${supplierName}?`, [
-      { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Aceptar',
-        onPress: async () => {
-          try {
-            await acceptOffer.mutateAsync(offerId);
-            Alert.alert('Match creado', 'Ya pueden coordinar por el chat del pedido.');
-          } catch (error) {
-            Alert.alert('No pudimos aceptar', getOfferErrorMessage(error));
-          }
-        },
-      },
-    ]);
-  };
-
-  const handleReject = (offerId: string) => {
-    Alert.alert(
-      'Rechazar oferta',
-      '¿Quieres descartar esta oferta? El vecino podrá seguir viendo tu pedido.',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Rechazar',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await rejectOffer.mutateAsync(offerId);
-            } catch (error) {
-              Alert.alert('No pudimos rechazar', getOfferErrorMessage(error));
-            }
-          },
-        },
-      ],
-    );
-  };
 
   return (
     <Screen>
@@ -150,6 +105,7 @@ export default function NegotiationsScreen() {
                 offer={offer}
                 canManage={tab === 'received'}
                 showNeed={tab === 'sent'}
+                onPress={() => router.push({ pathname: '/offers/[id]', params: { id: offer.id } })}
                 onChat={() =>
                   router.push({
                     pathname: '/chat/[needId]',

@@ -8,6 +8,7 @@ import type { Offer } from '@/types';
 import {
   acceptOffer,
   createOffer,
+  getOfferById,
   listOffersByNeed,
   listReceivedOffers,
   listSentOffers,
@@ -36,6 +37,14 @@ export function useNeedOffers(needId: string | undefined) {
     queryKey: queryKeys.offers.byNeed(needId ?? ''),
     queryFn: () => listOffersByNeed(needId as string),
     enabled: Boolean(needId),
+  });
+}
+
+export function useOfferDetail(offerId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.offers.detail(offerId ?? ''),
+    queryFn: () => getOfferById(offerId as string),
+    enabled: Boolean(offerId),
   });
 }
 

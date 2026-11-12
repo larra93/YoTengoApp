@@ -14,7 +14,17 @@ export interface NeedWithRelations extends Need {
 
 export interface OfferWithRelations extends Offer {
   supplier: PublicProfile | null;
-  need?: Pick<Need, 'id' | 'title' | 'status' | 'user_id' | 'deal_type' | 'reference_image_url'> & {
+  need?: Pick<
+    Need,
+    | 'id'
+    | 'title'
+    | 'status'
+    | 'user_id'
+    | 'deal_type'
+    | 'start_date'
+    | 'end_date'
+    | 'reference_image_url'
+  > & {
     category?: Category | null;
   };
 }

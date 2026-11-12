@@ -5,12 +5,14 @@ import { ActivityIndicator, Alert, Pressable, ScrollView, View } from 'react-nat
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CategoryThumb } from '@/components/needs';
+import { OfferCard } from '@/components/offers';
 import { ReviewCard } from '@/components/reviews';
 import { AppText, Avatar, Badge, Button, Screen, type BadgeTone } from '@/components/ui';
 import { useAuth } from '@/features/auth/auth-provider';
 import { getNeedErrorMessage } from '@/features/needs/errors';
 import { useCancelNeed, useCompleteNeed, useNeedDetail } from '@/features/needs/use-needs';
 import { useNeedOffers } from '@/features/offers/use-offers';
+import { useOfferActions } from '@/features/offers/use-offer-actions';
 import { useReviewsByNeed } from '@/features/reviews/use-reviews';
 import { cn } from '@/lib/cn';
 import { formatDateRange, formatDistance, getInitials } from '@/lib/format';
@@ -63,11 +65,13 @@ export default function NeedDetailScreen() {
   const reviewsQuery = useReviewsByNeed(needId);
   const completeNeed = useCompleteNeed();
   const cancelNeed = useCancelNeed();
+  const { handleAccept, handleReject } = useOfferActions();
   const need = needQuery.data;
   const authorName = need?.author?.full_name ?? 'Vecino';
   const isOpen = need?.status === 'open';
   const isOwnNeed = Boolean(user?.id && need?.user_id === user.id);
-  const acceptedOffer = (offersQuery.data ?? []).find((offer) => offer.status === 'accepted');
+  const offers = offersQuery.data ?? [];
+  const acceptedOffer = offers.find((offer) => offer.status === 'accepted');
   const isSupplier = Boolean(user?.id && acceptedOffer?.supplier_id === user.id);
   const isParticipant = isOwnNeed || isSupplier;
   const myReview = (reviewsQuery.data ?? []).find((review) => review.reviewer_id === user?.id);
@@ -295,6 +299,21 @@ export default function NeedDetailScreen() {
           </View>
           <Ionicons name="chevron-forward" size={17} color={palette.placeholder} />
         </Pressable>
+
+        {isOwnNeed && offers.length > 0 ? (
+          <View className="mt-6 gap-2 px-5">
+            <AppText variant="subtitle">Ofertas recibidas</AppText>
+            {offers.map((offer) => (
+              <OfferCard
+                key={offer.id}
+                offer={offer}
+                onPress={() => router.push({ pathname: '/offers/[id]', params: { id: offer.id } })}
+                onAccept={() => handleAccept(offer.id, offer.supplier?.full_name ?? 'tu vecino')}
+                onReject={() => handleReject(offer.id)}
+              />
+            ))}
+          </View>
+        ) : null}
 
         {need.status === 'completed' ? (
           <View className="mt-6 gap-2 px-5">

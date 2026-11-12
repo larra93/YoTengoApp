@@ -20,7 +20,7 @@ const OFFER_SELECT = `
   updated_at,
   supplier:profiles!offers_supplier_id_fkey(${PUBLIC_PROFILE_SELECT}),
   need:needs!offers_need_id_fkey(
-    id, title, status, user_id, deal_type, reference_image_url,
+    id, title, status, user_id, deal_type, start_date, end_date, reference_image_url,
     category:categories(id, name, slug, icon, sort_order)
   )
 `;
@@ -35,7 +35,14 @@ type OfferRowWithRelations = OfferRow & {
   need:
     | (Pick<
         Database['public']['Tables']['needs']['Row'],
-        'id' | 'title' | 'status' | 'user_id' | 'deal_type' | 'reference_image_url'
+        | 'id'
+        | 'title'
+        | 'status'
+        | 'user_id'
+        | 'deal_type'
+        | 'start_date'
+        | 'end_date'
+        | 'reference_image_url'
       > & { category: Category | null })
     | null;
 };
@@ -167,6 +174,20 @@ export async function listSentOffers(userId: string) {
   }
 
   return (data as OfferRowWithRelations[]).map(mapOfferRow);
+}
+
+export async function getOfferById(offerId: string) {
+  const { data, error } = await supabase
+    .from('offers')
+    .select(OFFER_SELECT)
+    .eq('id', offerId)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return data ? mapOfferRow(data as OfferRowWithRelations) : null;
 }
 
 export async function listOffersByNeed(needId: string) {

@@ -69,6 +69,7 @@ function AppStack() {
       <Stack.Screen name="auth/callback" />
       <Stack.Screen name="need/[id]" />
       <Stack.Screen name="offer/[needId]" />
+      <Stack.Screen name="offers/[id]" />
       <Stack.Screen name="chat/[needId]" />
       <Stack.Screen name="review/[needId]" />
       <Stack.Screen name="reviews" />
