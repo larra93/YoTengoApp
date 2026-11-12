@@ -10,6 +10,7 @@ import {
   listCategories,
   listMyNeeds,
   listNearbyNeeds,
+  listOpenNeedsByUser,
   listRecentNeeds,
   type CreateNeedInput,
 } from './api';
@@ -62,6 +63,14 @@ export function useMyNeeds(userId: string | undefined) {
   return useQuery({
     queryKey: queryKeys.needs.mine(userId ?? ''),
     queryFn: () => listMyNeeds(userId as string),
+    enabled: Boolean(userId),
+  });
+}
+
+export function useOpenNeedsByUser(userId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.needs.openByUser(userId ?? ''),
+    queryFn: () => listOpenNeedsByUser(userId as string),
     enabled: Boolean(userId),
   });
 }

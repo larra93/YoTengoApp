@@ -16,6 +16,8 @@ Fase 4 (ofertas y chat): envío de ofertas con foto y precio, bandejas de oferta
 
 Fase 5 (reseñas y perfil): reseñas con estrellas vía `create_review`, reputación real del perfil, listado de mis pedidos con estados, completar/cancelar pedido desde el detalle, sección de reseñas del trato y badge dinámico de negociaciones.
 
+Fase 6 (perfil público y actividad): pantalla de perfil público con estadísticas, pedidos abiertos y reseñas del vecino, más centro de actividad con ofertas pendientes, mensajes recientes y reseñas, con campana dinámica en el Explorar.
+
 ## Requisitos
 
 - Node.js 20 o superior.
@@ -75,7 +77,7 @@ El onboarding se exige mientras el perfil no tenga barrio. El avatar se guarda e
 ## Estructura
 
 ```text
-src/app/            Rutas de Expo Router (auth, onboarding, tabs)
+src/app/            Rutas de Expo Router (auth, onboarding, tabs, perfil público, actividad)
 src/components/     Componentes de UI, auth, perfil, pedidos, ofertas, chat y reseñas
 src/features/       Lógica de auth, perfil, pedidos, ofertas, chat y reseñas
 src/lib/            Supabase, query client, formato y utilidades

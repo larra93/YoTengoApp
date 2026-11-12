@@ -239,6 +239,22 @@ export async function getNeedById(needId: string) {
   } satisfies NeedWithRelations;
 }
 
+export async function listOpenNeedsByUser(userId: string) {
+  const { data, error } = await supabase
+    .from('needs')
+    .select(NEED_SELECT)
+    .eq('user_id', userId)
+    .eq('status', 'open')
+    .order('created_at', { ascending: false })
+    .limit(10);
+
+  if (error) {
+    throw error;
+  }
+
+  return (data as NeedRowWithRelations[]).map(mapNeedRow);
+}
+
 export async function listMyNeeds(userId: string) {
   const { data, error } = await supabase
     .from('needs')

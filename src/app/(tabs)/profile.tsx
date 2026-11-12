@@ -231,7 +231,16 @@ export default function ProfileScreen() {
 
         <View className="mt-3 gap-3 px-5">
           {recentReviews.length > 0 ? (
-            recentReviews.map((review) => <ReviewCard key={review.id} review={review} showNeed />)
+            recentReviews.map((review) => (
+              <ReviewCard
+                key={review.id}
+                review={review}
+                showNeed
+                onReviewerPress={() =>
+                  router.push({ pathname: '/user/[id]', params: { id: review.reviewer_id } })
+                }
+              />
+            ))
           ) : (
             <Pressable
               className="flex-row items-center gap-3 rounded-card border border-dashed border-slate-300 bg-surface p-4"

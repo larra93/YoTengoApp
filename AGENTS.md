@@ -73,6 +73,8 @@ src/
     review/[needId].tsx Calificar un trato completado
     reviews.tsx        Reseñas recibidas y reputación
     my-needs.tsx       Mis pedidos con todos los estados
+    user/[id].tsx      Perfil público de un vecino
+    activity.tsx       Centro de actividad (ofertas, mensajes, reseñas)
   components/
     ui/                Componentes base (Screen, Button, Card, Field...)
     auth/              Layout compartido de autenticación
@@ -83,10 +85,10 @@ src/
     reviews/           Estrellas y tarjetas de reseñas
   features/
     auth/              Sesión, perfil, API y errores de Supabase Auth
-    profile/           Estadísticas del perfil
+    profile/           Estadísticas del perfil y perfil público
     needs/             Feed, detalle, publicación, ubicación, storage y estados
     offers/            Crear/listar ofertas, aceptar/rechazar y realtime
-    chat/              Historial, envío de mensajes, acceso y realtime
+    chat/              Historial, envío de mensajes, acceso, mensajes recientes y realtime
     reviews/           Listar y crear reseñas con RPC `create_review`
   lib/                 Utilidades, Supabase, query client, formato
   theme/               Tokens de color y radios
@@ -128,5 +130,6 @@ src/
 - Fase 3: feed y publicación de pedidos con TanStack Query, ubicación/RPC `nearby_needs`, filtros y foto.
 - Fase 4: ofertas con foto/precio, match (`accept_offer`/`reject_offer`), negociaciones y chat realtime por `need_id`.
 - Fase 5: reseñas (`create_review` + trigger de reputación), perfil y pedidos con datos reales, estados de trato (completar/cancelar) y badge dinámico de negociaciones.
+- Fase 6: perfil público de un vecino (`/user/[id]`) y centro de actividad (`/activity`) con ofertas pendientes, mensajes recientes y reseñas, más campana dinámica del Explorar.
 
 La app requiere `.env` con credenciales de Supabase desde la Fase 2. No importar `service_role` ni claves secretas en ningún archivo del cliente.

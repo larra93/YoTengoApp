@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { AppText, Avatar, Card } from '@/components/ui';
 import { getInitials } from '@/lib/format';
@@ -13,6 +13,7 @@ export interface ReviewCardProps {
   review: ReviewWithRelations;
   showNeed?: boolean;
   showReviewer?: boolean;
+  onReviewerPress?: () => void;
   className?: string;
 }
 
@@ -20,6 +21,7 @@ export function ReviewCard({
   review,
   showNeed = false,
   showReviewer = true,
+  onReviewerPress,
   className,
 }: ReviewCardProps) {
   const person = showReviewer ? review.reviewer : review.reviewee;
@@ -37,9 +39,17 @@ export function ReviewCard({
         )}
         <View className="flex-1 gap-1">
           <View className="flex-row items-center justify-between gap-2">
-            <AppText variant="subtitle" className="flex-1 text-[13px]" numberOfLines={1}>
-              {showReviewer ? name : 'Reseña recibida'}
-            </AppText>
+            {showReviewer && onReviewerPress ? (
+              <Pressable className="flex-1" accessibilityRole="link" onPress={onReviewerPress}>
+                <AppText variant="subtitle" className="text-[13px]" numberOfLines={1}>
+                  {name}
+                </AppText>
+              </Pressable>
+            ) : (
+              <AppText variant="subtitle" className="flex-1 text-[13px]" numberOfLines={1}>
+                {showReviewer ? name : 'Reseña recibida'}
+              </AppText>
+            )}
             <AppText variant="caption" className="text-[10px]">
               {formatDistanceToNow(parseISO(review.created_at), { addSuffix: true, locale: es })}
             </AppText>

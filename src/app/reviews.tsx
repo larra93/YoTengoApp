@@ -66,7 +66,15 @@ export default function ReviewsScreen() {
             </View>
           ) : reviews.length > 0 ? (
             reviews.map((review) => (
-              <ReviewCard key={review.id} review={review} showNeed showReviewer />
+              <ReviewCard
+                key={review.id}
+                review={review}
+                showNeed
+                showReviewer
+                onReviewerPress={() =>
+                  router.push({ pathname: '/user/[id]', params: { id: review.reviewer_id } })
+                }
+              />
             ))
           ) : (
             <View className="items-center gap-2 rounded-card border border-dashed border-slate-300 bg-surface px-6 py-10">

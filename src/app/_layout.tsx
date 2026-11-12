@@ -73,6 +73,8 @@ function AppStack() {
       <Stack.Screen name="review/[needId]" />
       <Stack.Screen name="reviews" />
       <Stack.Screen name="my-needs" />
+      <Stack.Screen name="user/[id]" />
+      <Stack.Screen name="activity" />
     </Stack>
   );
 }

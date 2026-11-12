@@ -23,6 +23,7 @@ export type OfferWithSupplier = OfferWithRelations;
 
 export interface ChatMessageWithSender extends ChatMessage {
   sender: PublicProfile | null;
+  need?: { id: string; title: string } | null;
 }
 
 export interface ReviewWithRelations extends Review {

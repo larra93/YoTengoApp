@@ -13,6 +13,8 @@ import {
 import { NeedCard } from '@/components/needs';
 import { AppText, Avatar, Screen, SectionHeader } from '@/components/ui';
 import { useAuth } from '@/features/auth/auth-provider';
+import { useRecentIncomingMessages } from '@/features/chat/use-chat';
+import { useReceivedOffers } from '@/features/offers/use-offers';
 import { useCategories, useExploreNeeds } from '@/features/needs/use-needs';
 import { useViewerLocation } from '@/features/needs/use-viewer-location';
 import { getInitials } from '@/lib/format';
@@ -34,6 +36,13 @@ export default function ExploreScreen() {
   const { location, requestLocation, isRequesting } = useViewerLocation();
   const categoriesQuery = useCategories();
   const needsQuery = useExploreNeeds({ categoryId, dealType }, location, user?.id);
+  const receivedQuery = useReceivedOffers(user?.id);
+  const messagesQuery = useRecentIncomingMessages(user?.id);
+  const pendingOffers = (receivedQuery.data ?? []).filter(
+    (offer) => offer.status === 'pending',
+  ).length;
+  const freshMessages = messagesQuery.data?.freshCount ?? 0;
+  const hasActivity = pendingOffers > 0 || freshMessages > 0;
   const fullName = profile?.full_name?.trim() || 'vecino';
   const firstName = fullName.split(' ')[0];
   const neighborhood = profile?.neighborhood?.trim() || 'Elige tu barrio';
@@ -74,12 +83,12 @@ export default function ExploreScreen() {
             <Pressable
               accessibilityLabel="Notificaciones"
               className="h-11 w-11 items-center justify-center rounded-full border border-line bg-surface"
-              onPress={() =>
-                Alert.alert('Notificaciones', 'Todavía no tienes notificaciones nuevas.')
-              }
+              onPress={() => router.push('/activity')}
             >
               <Ionicons name="notifications-outline" size={20} color={palette.ink} />
-              <View className="absolute right-3 top-3 h-1.5 w-1.5 rounded-full bg-accent" />
+              {hasActivity ? (
+                <View className="absolute right-3 top-3 h-1.5 w-1.5 rounded-full bg-accent" />
+              ) : null}
             </Pressable>
             <Pressable accessibilityLabel="Ir al perfil" onPress={() => router.push('/profile')}>
               <Avatar size="md" uri={profile?.avatar_url} initials={getInitials(fullName) || '?'} />

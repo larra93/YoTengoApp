@@ -18,6 +18,12 @@ type ChatRowWithSender = ChatRow & {
   sender: PublicProfileRow | null;
 };
 
+const MESSAGE_WITH_NEED_SELECT = `${MESSAGE_SELECT}, need:needs!chat_messages_need_id_fkey(id, title)`;
+
+type ChatRowWithNeed = ChatRowWithSender & {
+  need: { id: string; title: string } | null;
+};
+
 function toPublicProfile(row: PublicProfileRow | null): PublicProfile | null {
   if (!row) {
     return null;
@@ -58,6 +64,24 @@ export async function listChatMessages(needId: string) {
   }
 
   return (data as ChatRowWithSender[]).map(mapMessageRow);
+}
+
+export async function listRecentIncomingMessages(userId: string, limit = 10) {
+  const { data, error } = await supabase
+    .from('chat_messages')
+    .select(MESSAGE_WITH_NEED_SELECT)
+    .eq('receiver_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    throw error;
+  }
+
+  return (data as ChatRowWithNeed[]).map((row) => ({
+    ...mapMessageRow(row),
+    need: row.need,
+  }));
 }
 
 export async function sendChatMessage(needId: string, body: string) {

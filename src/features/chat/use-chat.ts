@@ -4,9 +4,38 @@ import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
 import { queryKeys } from '@/lib/query-keys';
 import { supabase } from '@/lib/supabase';
-import type { ChatMessage } from '@/types';
+import type { ChatMessage, ChatMessageWithSender } from '@/types';
 
-import { canAccessChat, listChatMessages, sendChatMessage } from './api';
+import {
+  canAccessChat,
+  listChatMessages,
+  listRecentIncomingMessages,
+  sendChatMessage,
+} from './api';
+
+export interface IncomingMessagesSummary {
+  messages: ChatMessageWithSender[];
+  freshCount: number;
+}
+
+const FRESH_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+export function useRecentIncomingMessages(userId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.chat.recentIncoming(userId ?? ''),
+    enabled: Boolean(userId),
+    staleTime: 30 * 1000,
+    queryFn: async (): Promise<IncomingMessagesSummary> => {
+      const messages = await listRecentIncomingMessages(userId as string);
+      const cutoff = Date.now() - FRESH_WINDOW_MS;
+
+      return {
+        messages,
+        freshCount: messages.filter((message) => Date.parse(message.created_at) > cutoff).length,
+      };
+    },
+  });
+}
 
 export function useChatMessages(needId: string | undefined) {
   return useQuery({

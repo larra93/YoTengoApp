@@ -221,9 +221,7 @@ export default function NeedDetailScreen() {
 
         <Pressable
           className="mx-5 mt-4 flex-row items-center gap-3 rounded-card border border-line bg-surface p-3.5"
-          onPress={() =>
-            Alert.alert('Perfil público', 'El perfil del vecino se habilitará en una próxima fase.')
-          }
+          onPress={() => router.push({ pathname: '/user/[id]', params: { id: need.user_id } })}
         >
           <Avatar
             size="md"

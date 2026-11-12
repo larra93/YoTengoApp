@@ -15,6 +15,7 @@ export const queryKeys = {
     recent: (filters: NeedFilters & { viewerId?: string }) => ['needs', 'recent', filters] as const,
     detail: (needId: string) => ['needs', 'detail', needId] as const,
     mine: (userId: string) => ['needs', 'mine', userId] as const,
+    openByUser: (userId: string) => ['needs', 'open-by-user', userId] as const,
   },
   reviews: {
     byUser: (userId: string) => ['reviews', 'user', userId] as const,
@@ -29,5 +30,6 @@ export const queryKeys = {
   chat: {
     byNeed: (needId: string) => ['chat', needId] as const,
     access: (needId: string, userId: string) => ['chat', 'access', needId, userId] as const,
+    recentIncoming: (userId: string) => ['chat', 'recent-incoming', userId] as const,
   },
 };
