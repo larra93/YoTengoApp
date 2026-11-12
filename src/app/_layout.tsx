@@ -11,6 +11,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AppText, Button, Screen } from '@/components/ui';
 import { AuthProvider, useAuth } from '@/features/auth/auth-provider';
+import { NotificationsBridge } from '@/features/notifications';
 import { queryClient } from '@/lib/query-client';
 import { palette } from '@/theme/tokens';
 
@@ -56,27 +57,30 @@ function ProfileErrorScreen() {
 
 function AppStack() {
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: palette.bg },
-      }}
-    >
-      <Stack.Screen name="(auth)" />
-      <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="onboarding" />
-      <Stack.Screen name="edit-profile" options={{ presentation: 'modal' }} />
-      <Stack.Screen name="auth/callback" />
-      <Stack.Screen name="need/[id]" />
-      <Stack.Screen name="offer/[needId]" />
-      <Stack.Screen name="offers/[id]" />
-      <Stack.Screen name="chat/[needId]" />
-      <Stack.Screen name="review/[needId]" />
-      <Stack.Screen name="reviews" />
-      <Stack.Screen name="my-needs" />
-      <Stack.Screen name="user/[id]" />
-      <Stack.Screen name="activity" />
-    </Stack>
+    <>
+      <NotificationsBridge />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: palette.bg },
+        }}
+      >
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="onboarding" />
+        <Stack.Screen name="edit-profile" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="auth/callback" />
+        <Stack.Screen name="need/[id]" />
+        <Stack.Screen name="offer/[needId]" />
+        <Stack.Screen name="offers/[id]" />
+        <Stack.Screen name="chat/[needId]" />
+        <Stack.Screen name="review/[needId]" />
+        <Stack.Screen name="reviews" />
+        <Stack.Screen name="my-needs" />
+        <Stack.Screen name="user/[id]" />
+        <Stack.Screen name="activity" />
+      </Stack>
+    </>
   );
 }
 

@@ -3,6 +3,7 @@ import type { Session } from '@supabase/supabase-js';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 
+import { clearRegisteredPushToken } from '@/features/notifications/api';
 import { supabase } from '@/lib/supabase';
 import type { Profile } from '@/types';
 
@@ -74,6 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const handleSignOut = useCallback(async () => {
     try {
+      await clearRegisteredPushToken();
       await signOutRequest();
     } finally {
       queryClient.clear();

@@ -18,7 +18,9 @@ Fase 5 (reseñas y perfil): reseñas con estrellas vía `create_review`, reputac
 
 Fase 6 (perfil público y actividad): pantalla de perfil público con estadísticas, pedidos abiertos y reseñas del vecino, más centro de actividad con ofertas pendientes, mensajes recientes y reseñas, con campana dinámica en el Explorar.
 
-Fase 7 (QA): `expo-doctor` 21/21, dependencias al día con el SDK, `typecheck`/`lint`/`format` limpios, export estático de las 25 rutas, migraciones 6/6 sincronizadas con el proyecto remoto y smoke test de conectividad + bloqueo RLS de `anon` sobre el proyecto vivo.
+Fase 7 (QA): `expo-doctor` 21/21, dependencias al día con el SDK, `typecheck`/`lint`/`format` limpios, export estático de las 26 rutas, migraciones 7/7 sincronizadas con el proyecto remoto y smoke test de conectividad + bloqueo RLS de `anon` sobre el proyecto vivo.
+
+Fase 8a (notificaciones push): push tokens por dispositivo (`push_tokens` con RLS propia), envío desde Postgres vía `pg_net` a la Expo Push API en 3 eventos (oferta recibida, oferta aceptada y mensaje de chat), registro de permisos con `expo-notifications` y navegación al tocar la notificación. Requiere APK (no funciona en Expo Go ni en web).
 
 ## Requisitos
 

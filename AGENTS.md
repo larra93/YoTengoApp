@@ -90,6 +90,7 @@ src/
     offers/            Crear/listar ofertas, aceptar/rechazar y realtime
     chat/              Historial, envío de mensajes, acceso, mensajes recientes y realtime
     reviews/           Listar y crear reseñas con RPC `create_review`
+    notifications/     Registro de push tokens, permisos y navegación al tocar una notificación
   lib/                 Utilidades, Supabase, query client, formato
   theme/               Tokens de color y radios
   types/               Tipos de dominio (espejo del esquema)
@@ -120,6 +121,7 @@ src/
 - `npm run db:push` aplica migraciones y seed al proyecto remoto vinculado. `npm run db:push:local` requiere Docker.
 - RPCs: `nearby_needs`, `set_my_location`, `create_need`, `accept_offer`, `reject_offer`, `cancel_need`, `complete_need`, `send_message`, `create_review`.
 - Storage: buckets `need-images`, `offer-images`, `avatars`; rutas por `user_id`.
+- Push: tabla `push_tokens` (RLS propia, PK = token) y función `notify_user` que llama a la Expo Push API con `pg_net`; la disparan triggers de `offers` (insert/update) y `chat_messages` (insert). Los fallos de push jamás rompen la operación original.
 - Los advisors marcan las RPC `security definer` como advertencia. Son intencionales y validan `auth.uid()` y participación antes de mutar.
 
 ## Fases
@@ -132,5 +134,6 @@ src/
 - Fase 5: reseñas (`create_review` + trigger de reputación), perfil y pedidos con datos reales, estados de trato (completar/cancelar) y badge dinámico de negociaciones.
 - Fase 6: perfil público de un vecino (`/user/[id]`) y centro de actividad (`/activity`) con ofertas pendientes, mensajes recientes y reseñas, más campana dinámica del Explorar.
 - Fase 7: QA — `npx expo-doctor`, `npx expo install --check`, `npm run typecheck`, `npm run lint`, `npm run format:check`, `npx expo export --platform web`, `npx supabase migration list --remote` y smoke test de conectividad/RLS contra el proyecto vivo.
+- Fase 8a: notificaciones push — tabla `push_tokens`, función `notify_user` (envía a la Expo Push API con `pg_net` desde triggers de `offers` y `chat_messages`), registro de token con `expo-notifications` y navegación al tocar la notificación. Solo funciona en APK/build propio, no en Expo Go ni web.
 
 La app requiere `.env` con credenciales de Supabase desde la Fase 2. No importar `service_role` ni claves secretas en ningún archivo del cliente.
