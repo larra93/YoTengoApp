@@ -131,5 +131,6 @@ src/
 - Fase 4: ofertas con foto/precio, match (`accept_offer`/`reject_offer`), negociaciones y chat realtime por `need_id`.
 - Fase 5: reseñas (`create_review` + trigger de reputación), perfil y pedidos con datos reales, estados de trato (completar/cancelar) y badge dinámico de negociaciones.
 - Fase 6: perfil público de un vecino (`/user/[id]`) y centro de actividad (`/activity`) con ofertas pendientes, mensajes recientes y reseñas, más campana dinámica del Explorar.
+- Fase 7: QA — `npx expo-doctor`, `npx expo install --check`, `npm run typecheck`, `npm run lint`, `npm run format:check`, `npx expo export --platform web`, `npx supabase migration list --remote` y smoke test de conectividad/RLS contra el proyecto vivo.
 
 La app requiere `.env` con credenciales de Supabase desde la Fase 2. No importar `service_role` ni claves secretas en ningún archivo del cliente.

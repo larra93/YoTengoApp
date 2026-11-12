@@ -18,6 +18,8 @@ Fase 5 (reseñas y perfil): reseñas con estrellas vía `create_review`, reputac
 
 Fase 6 (perfil público y actividad): pantalla de perfil público con estadísticas, pedidos abiertos y reseñas del vecino, más centro de actividad con ofertas pendientes, mensajes recientes y reseñas, con campana dinámica en el Explorar.
 
+Fase 7 (QA): `expo-doctor` 21/21, dependencias al día con el SDK, `typecheck`/`lint`/`format` limpios, export estático de las 25 rutas, migraciones 6/6 sincronizadas con el proyecto remoto y smoke test de conectividad + bloqueo RLS de `anon` sobre el proyecto vivo.
+
 ## Requisitos
 
 - Node.js 20 o superior.
@@ -63,6 +65,22 @@ npm run db:types
 ```
 
 Completa `.env` con el Project URL y la Publishable key del dashboard. No uses la Secret key ni `service_role` en la app.
+
+## QA
+
+Verificación automatizada:
+
+```bash
+npm run typecheck
+npm run lint
+npm run format:check
+npx expo-doctor
+npx expo install --check
+npx expo export --platform web
+npx supabase migration list --remote
+```
+
+Smoke test manual en dispositivo o web: registro → onboarding → publicar pedido con foto → abrir el Explorar (tu pedido no aparece) → otra cuenta envía oferta → aceptar → chatear → marcar completado → calificar → revisar reputación y actividad.
 
 ## Autenticación
 
