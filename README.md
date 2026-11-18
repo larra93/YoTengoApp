@@ -20,7 +20,7 @@ Fase 6 (perfil público y actividad): pantalla de perfil público con estadísti
 
 Fase 7 (QA): `expo-doctor` 21/21, dependencias al día con el SDK, `typecheck`/`lint`/`format` limpios, export estático de las 26 rutas, migraciones 7/7 sincronizadas con el proyecto remoto y smoke test de conectividad + bloqueo RLS de `anon` sobre el proyecto vivo.
 
-Fase 8a (notificaciones push): push tokens por dispositivo (`push_tokens` con RLS propia), envío desde Postgres vía `pg_net` a la Expo Push API en 3 eventos (oferta recibida, oferta aceptada y mensaje de chat), registro de permisos con `expo-notifications` y navegación al tocar la notificación. Requiere credenciales FCM de Firebase (`google-services.json` en la raíz y la service account key subida a Expo) y APK (no funciona en Expo Go ni en web).
+Fase 8a (notificaciones push): push tokens por dispositivo (`push_tokens` con RLS propia), envío desde Postgres vía `pg_net` a la Expo Push API en 3 eventos (oferta recibida, oferta aceptada y mensaje de chat), registro de permisos con `expo-notifications` y navegación al tocar la notificación. Requiere credenciales FCM de Firebase (`google-services.json` local, fuera del repo, y la service account key subida a Expo) y APK (no funciona en Expo Go ni en web).
 
 ## Requisitos
 
