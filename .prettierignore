@@ -7,3 +7,4 @@ assets/expo.icon
 package-lock.json
 src/types/database.types.ts
 supabase/.temp
+google-services.json

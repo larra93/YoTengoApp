@@ -1,10 +1,20 @@
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
-import { Platform } from 'react-native';
+import { Alert, Platform } from 'react-native';
 
 import { supabase } from '@/lib/supabase';
 
 let registeredToken: string | null = null;
+let hasShownRegistrationAlert = false;
+
+function showRegistrationAlert(message: string) {
+  if (hasShownRegistrationAlert) {
+    return;
+  }
+
+  hasShownRegistrationAlert = true;
+  Alert.alert('Notificaciones no activadas', message);
+}
 
 export async function registerPushToken(userId: string) {
   if (Platform.OS === 'web') {
@@ -15,6 +25,9 @@ export async function registerPushToken(userId: string) {
     const { status } = await Notifications.requestPermissionsAsync();
 
     if (status !== 'granted') {
+      showRegistrationAlert(
+        'Permite las notificaciones de YoTengoApp en los ajustes del teléfono para recibir avisos de ofertas y mensajes.',
+      );
       return;
     }
 
@@ -25,7 +38,7 @@ export async function registerPushToken(userId: string) {
     const token = tokenResponse.data;
 
     if (!token) {
-      return;
+      throw new Error('No se obtuvo el push token');
     }
 
     const { error } = await supabase.from('push_tokens').upsert(
@@ -44,6 +57,9 @@ export async function registerPushToken(userId: string) {
     registeredToken = token;
   } catch {
     registeredToken = null;
+    showRegistrationAlert(
+      'Ocurrió un problema al registrar este dispositivo. Intenta nuevamente más tarde.',
+    );
   }
 }
 
