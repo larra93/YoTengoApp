@@ -81,6 +81,13 @@ export default function ExploreScreen() {
 
           <View className="flex-row items-center gap-2.5">
             <Pressable
+              accessibilityLabel="Mapa de pedidos"
+              className="h-11 w-11 items-center justify-center rounded-full border border-line bg-surface"
+              onPress={() => router.push('/map')}
+            >
+              <Ionicons name="map-outline" size={20} color={palette.ink} />
+            </Pressable>
+            <Pressable
               accessibilityLabel="Notificaciones"
               className="h-11 w-11 items-center justify-center rounded-full border border-line bg-surface"
               onPress={() => router.push('/activity')}

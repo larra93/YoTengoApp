@@ -51,6 +51,25 @@ export function useExploreNeeds(
   });
 }
 
+export function useMapNeeds(location: ViewerLocation | null, viewerId?: string) {
+  return useQuery({
+    queryKey: queryKeys.needs.map({
+      latitude: location?.latitude ?? 0,
+      longitude: location?.longitude ?? 0,
+      viewerId,
+    }),
+    queryFn: () =>
+      listNearbyNeeds({
+        latitude: location?.latitude as number,
+        longitude: location?.longitude as number,
+        radiusKm: 10,
+        limit: 50,
+        viewerId,
+      }),
+    enabled: Boolean(location),
+  });
+}
+
 export function useNeedDetail(needId: string | undefined) {
   return useQuery({
     queryKey: queryKeys.needs.detail(needId ?? ''),

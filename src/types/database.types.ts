@@ -506,6 +506,8 @@ export type Database = {
           distance_km: number
           end_date: string
           id: string
+          latitude: number
+          longitude: number
           reference_image_url: string
           start_date: string
           status: Database["public"]["Enums"]["need_status"]

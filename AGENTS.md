@@ -14,7 +14,7 @@ La app móvil vive en la raíz del repositorio. El plan de arquitectura y los mo
 - Supabase (Postgres + PostGIS + Auth + Storage + Realtime).
 - TanStack Query 5 para estado del servidor.
 - React Hook Form + Zod para formularios y validación.
-- date-fns, expo-image-picker, expo-location, expo-file-system, AsyncStorage.
+- date-fns, expo-image-picker, expo-location, expo-file-system, AsyncStorage, react-native-webview (mapa con Leaflet).
 
 ## Comandos
 
@@ -74,12 +74,13 @@ src/
     reviews.tsx        Reseñas recibidas y reputación
     my-needs.tsx       Mis pedidos con todos los estados
     user/[id].tsx      Perfil público de un vecino
-    activity.tsx       Centro de actividad (ofertas, mensajes, reseñas)
+    activity.tsx      Centro de actividad (ofertas, mensajes, reseñas)
+    map.tsx           Mapa de pedidos cercanos (WebView + Leaflet)
   components/
     ui/                Componentes base (Screen, Button, Card, Field...)
     auth/              Layout compartido de autenticación
     profile/           Selector de avatar
-    needs/             Tarjetas y miniaturas de pedidos
+    needs/             Tarjetas, miniaturas y mapa de pedidos
     offers/            Tarjetas de ofertas
     chat/              Burbujas de mensajes
     reviews/           Estrellas y tarjetas de reseñas
@@ -135,5 +136,6 @@ src/
 - Fase 6: perfil público de un vecino (`/user/[id]`) y centro de actividad (`/activity`) con ofertas pendientes, mensajes recientes y reseñas, más campana dinámica del Explorar.
 - Fase 7: QA — `npx expo-doctor`, `npx expo install --check`, `npm run typecheck`, `npm run lint`, `npm run format:check`, `npx expo export --platform web`, `npx supabase migration list --remote` y smoke test de conectividad/RLS contra el proyecto vivo.
 - Fase 8a: notificaciones push — tabla `push_tokens`, función `notify_user` (envía a la Expo Push API con `pg_net` desde triggers de `offers` y `chat_messages`), registro de token con `expo-notifications` y navegación al tocar la notificación. Requiere credenciales FCM de Firebase: `google-services.json` local (no va en el repo; está en `.gitignore` y EAS lo recibe por `.easignore`, si clonas en otra máquina descárgalo desde Firebase) y la service account key subida a Expo (Credentials → Android → FCM V1). Solo funciona en APK/build propio, no en Expo Go ni web.
+- Fase 8b: mapa de pedidos — ruta `/map` con WebView + Leaflet (tiles de OpenStreetMap), marcadores con foto de los pedidos abiertos a menos de 10 km (`nearby_needs` devuelve latitud/longitud desde la migración `20261118000001`), toque para abrir el detalle y botón de mapa en Explorar. En web, `needs-map.web.tsx` muestra un aviso de que el mapa solo está en la app móvil.
 
 La app requiere `.env` con credenciales de Supabase desde la Fase 2. No importar `service_role` ni claves secretas en ningún archivo del cliente.

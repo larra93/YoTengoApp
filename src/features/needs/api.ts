@@ -101,7 +101,10 @@ function mapNeedRow(row: NeedRowWithRelations): NeedWithRelations {
   };
 }
 
-function mapNearbyRow(row: NearbyNeedRow, profiles: Map<string, PublicProfileRow>) {
+function mapNearbyRow(
+  row: NearbyNeedRow,
+  profiles: Map<string, PublicProfileRow>,
+): NeedWithRelations {
   const profile = profiles.get(row.user_id);
   const category: Category = {
     id: row.category_id,
@@ -130,6 +133,8 @@ function mapNearbyRow(row: NearbyNeedRow, profiles: Map<string, PublicProfileRow
     category,
     author: toPublicProfile(profile ?? null),
     distance_km: row.distance_km,
+    latitude: row.latitude,
+    longitude: row.longitude,
   } satisfies NeedWithRelations;
 }
 

@@ -10,6 +10,8 @@ export interface NeedWithRelations extends Need {
   author: PublicProfile | null;
   offers_count?: number;
   distance_km?: number;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface OfferWithRelations extends Offer {

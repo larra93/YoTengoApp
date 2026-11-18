@@ -22,6 +22,8 @@ Fase 7 (QA): `expo-doctor` 21/21, dependencias al día con el SDK, `typecheck`/`
 
 Fase 8a (notificaciones push): push tokens por dispositivo (`push_tokens` con RLS propia), envío desde Postgres vía `pg_net` a la Expo Push API en 3 eventos (oferta recibida, oferta aceptada y mensaje de chat), registro de permisos con `expo-notifications` y navegación al tocar la notificación. Requiere credenciales FCM de Firebase (`google-services.json` local, fuera del repo, y la service account key subida a Expo) y APK (no funciona en Expo Go ni en web).
 
+Fase 8b (mapa de pedidos): pantalla `/map` con Leaflet + OpenStreetMap dentro de una WebView, centrada en tu ubicación, con marcadores de foto de los pedidos abiertos a menos de 10 km (`nearby_needs` ahora devuelve latitud/longitud); al tocar un marcador abres el detalle del pedido y hay un botón de mapa en Explorar. En web se muestra un aviso de que el mapa solo está en la app móvil.
+
 ## Requisitos
 
 - Node.js 20 o superior.
