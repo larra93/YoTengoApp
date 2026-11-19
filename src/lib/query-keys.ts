@@ -15,6 +15,8 @@ export const queryKeys = {
     map: (filters: { latitude: number; longitude: number; viewerId?: string }) =>
       ['needs', 'map', filters] as const,
     recent: (filters: NeedFilters & { viewerId?: string }) => ['needs', 'recent', filters] as const,
+    search: (filters: NeedFilters & { query: string; latitude?: number; longitude?: number }) =>
+      ['needs', 'search', filters] as const,
     detail: (needId: string) => ['needs', 'detail', needId] as const,
     mine: (userId: string) => ['needs', 'mine', userId] as const,
     openByUser: (userId: string) => ['needs', 'open-by-user', userId] as const,

@@ -1,12 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
   Pressable,
   RefreshControl,
   ScrollView,
+  TextInput,
   View,
 } from 'react-native';
 
@@ -15,7 +16,7 @@ import { AppText, Avatar, Screen, SectionHeader } from '@/components/ui';
 import { useAuth } from '@/features/auth/auth-provider';
 import { useRecentIncomingMessages } from '@/features/chat/use-chat';
 import { useReceivedOffers } from '@/features/offers/use-offers';
-import { useCategories, useExploreNeeds } from '@/features/needs/use-needs';
+import { useCategories, useExploreNeeds, useSearchNeeds } from '@/features/needs/use-needs';
 import { useViewerLocation } from '@/features/needs/use-viewer-location';
 import { getInitials } from '@/lib/format';
 import type { DealType } from '@/types';
@@ -33,9 +34,20 @@ export default function ExploreScreen() {
   const { user, profile } = useAuth();
   const [dealType, setDealType] = useState<DealType | undefined>();
   const [categoryId, setCategoryId] = useState<number | undefined>();
+  const [searchText, setSearchText] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const { location, requestLocation, isRequesting } = useViewerLocation();
+
+  useEffect(() => {
+    const timer = setTimeout(() => setSearchTerm(searchText.trim()), 300);
+    return () => clearTimeout(timer);
+  }, [searchText]);
+
   const categoriesQuery = useCategories();
   const needsQuery = useExploreNeeds({ categoryId, dealType }, location, user?.id);
+  const searchQuery = useSearchNeeds(searchTerm, { categoryId, dealType }, location);
+  const isSearching = searchTerm.length >= 2;
+  const activeQuery = isSearching ? searchQuery : needsQuery;
   const receivedQuery = useReceivedOffers(user?.id);
   const messagesQuery = useRecentIncomingMessages(user?.id);
   const pendingOffers = (receivedQuery.data ?? []).filter(
@@ -46,7 +58,7 @@ export default function ExploreScreen() {
   const fullName = profile?.full_name?.trim() || 'vecino';
   const firstName = fullName.split(' ')[0];
   const neighborhood = profile?.neighborhood?.trim() || 'Elige tu barrio';
-  const needs = needsQuery.data ?? [];
+  const needs = activeQuery.data ?? [];
 
   return (
     <Screen>
@@ -55,8 +67,8 @@ export default function ExploreScreen() {
         contentContainerStyle={{ paddingBottom: 32 }}
         refreshControl={
           <RefreshControl
-            refreshing={needsQuery.isRefetching}
-            onRefresh={() => needsQuery.refetch()}
+            refreshing={activeQuery.isRefetching}
+            onRefresh={() => activeQuery.refetch()}
             tintColor={palette.brand}
           />
         }
@@ -103,16 +115,27 @@ export default function ExploreScreen() {
           </View>
         </View>
 
-        <Pressable
-          className="mx-5 mt-4 flex-row items-center gap-2.5 rounded-2xl border border-line bg-surface px-4 py-3"
-          onPress={() =>
-            Alert.alert('Buscar', 'La búsqueda por texto se agregará en una fase posterior.')
-          }
-        >
+        <View className="mx-5 mt-4 flex-row items-center gap-2.5 rounded-2xl border border-line bg-surface px-4 py-3">
           <Ionicons name="search" size={18} color={palette.muted} />
-          <AppText variant="muted" className="flex-1 text-[13px]">
-            ¿Qué necesitas hoy?
-          </AppText>
+          <TextInput
+            accessibilityLabel="Buscar pedidos"
+            className="flex-1 text-sm font-semibold text-ink"
+            value={searchText}
+            onChangeText={setSearchText}
+            placeholder="¿Qué puedes ofrecer?"
+            placeholderTextColor={palette.placeholder}
+            returnKeyType="search"
+            autoCapitalize="none"
+          />
+          {searchText.length > 0 ? (
+            <Pressable
+              accessibilityLabel="Limpiar búsqueda"
+              className="rounded-lg bg-line p-1.5"
+              onPress={() => setSearchText('')}
+            >
+              <Ionicons name="close" size={14} color={palette.muted} />
+            </Pressable>
+          ) : null}
           <Pressable
             accessibilityLabel="Actualizar ubicación"
             className="rounded-lg bg-brand-soft p-1.5"
@@ -136,7 +159,7 @@ export default function ExploreScreen() {
               />
             )}
           </Pressable>
-        </Pressable>
+        </View>
 
         {!location ? (
           <Pressable
@@ -205,29 +228,53 @@ export default function ExploreScreen() {
 
         <SectionHeader
           className="mt-6 px-5"
-          title={location ? 'Cerca de ti' : 'Pedidos recientes'}
+          title={
+            isSearching
+              ? `Resultados para «${searchTerm}»`
+              : location
+                ? 'Cerca de ti'
+                : 'Pedidos recientes'
+          }
           subtitle={
-            location
-              ? 'Pedidos publicados a menos de 5 km'
-              : 'Activa tu ubicación para filtrar por cercanía'
+            isSearching
+              ? 'Pedidos abiertos que puedes ofrecer'
+              : location
+                ? 'Pedidos publicados a menos de 5 km'
+                : 'Activa tu ubicación para filtrar por cercanía'
           }
           actionLabel="Actualizar"
-          onAction={() => needsQuery.refetch()}
+          onAction={() => activeQuery.refetch()}
         />
 
         <View className="mt-3 gap-3 px-5">
-          {needsQuery.isLoading ? (
+          {activeQuery.isLoading ? (
             <View className="items-center gap-2 rounded-card border border-dashed border-slate-300 bg-surface px-6 py-10">
               <ActivityIndicator size="small" color={palette.brand} />
-              <AppText variant="muted">Cargando pedidos...</AppText>
+              <AppText variant="muted">
+                {isSearching ? 'Buscando pedidos...' : 'Cargando pedidos...'}
+              </AppText>
             </View>
-          ) : needsQuery.error ? (
+          ) : activeQuery.error ? (
             <View className="items-center gap-2 rounded-card border border-dashed border-slate-300 bg-surface px-6 py-10">
               <Ionicons name="cloud-offline-outline" size={26} color={palette.placeholder} />
               <AppText variant="subtitle">No pudimos cargar el feed</AppText>
               <AppText variant="caption" className="text-center">
                 Revisa tu conexión e intenta nuevamente.
               </AppText>
+            </View>
+          ) : needs.length === 0 && isSearching ? (
+            <View className="items-center gap-2 rounded-card border border-dashed border-slate-300 bg-surface px-6 py-10">
+              <Ionicons name="search-outline" size={26} color={palette.placeholder} />
+              <AppText variant="subtitle">Nadie ha pedido «{searchTerm}» todavía</AppText>
+              <AppText variant="caption" className="text-center">
+                Si es algo que necesitas tú, publica tu pedido y tus vecinos te ofrecerán.
+              </AppText>
+              <Pressable
+                className="mt-1 rounded-full bg-brand px-4 py-2"
+                onPress={() => router.push('/publish')}
+              >
+                <AppText className="text-xs font-bold text-white">Publicar pedido</AppText>
+              </Pressable>
             </View>
           ) : needs.length > 0 ? (
             needs.map((need) => (

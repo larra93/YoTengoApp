@@ -24,6 +24,8 @@ Fase 8a (notificaciones push): push tokens por dispositivo (`push_tokens` con RL
 
 Fase 8b (mapa de pedidos): pantalla `/map` con Leaflet + OpenStreetMap dentro de una WebView, centrada en tu ubicación, con marcadores de foto de los pedidos abiertos a menos de 10 km (`nearby_needs` ahora devuelve latitud/longitud); al tocar un marcador abres el detalle del pedido y hay un botón de mapa en Explorar. En web se muestra un aviso de que el mapa solo está en la app móvil.
 
+Fase 8c (búsqueda de pedidos): barra "¿Qué puedes ofrecer?" en Explorar que busca pedidos abiertos de otros vecinos por título o descripción (RPC `search_needs`, búsqueda literal insensible a mayúsculas, respeta los chips de categoría/tipo y agrega distancia si hay ubicación); está pensada para el modo "tengo": encuentras rápido la demanda a la que puedes ofrecer y, si nadie pidió lo que buscas, el estado vacío te invita a publicar tu pedido.
+
 ## Requisitos
 
 - Node.js 20 o superior.

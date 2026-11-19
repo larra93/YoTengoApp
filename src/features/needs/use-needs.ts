@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { queryKeys, type NeedFilters } from '@/lib/query-keys';
 
@@ -12,6 +12,7 @@ import {
   listNearbyNeeds,
   listOpenNeedsByUser,
   listRecentNeeds,
+  searchNeeds,
   type CreateNeedInput,
 } from './api';
 import type { ViewerLocation } from './use-viewer-location';
@@ -48,6 +49,26 @@ export function useExploreNeeds(
             longitude: location?.longitude as number,
           })
         : listRecentNeeds(feedOptions),
+  });
+}
+
+export function useSearchNeeds(
+  query: string,
+  filters: NeedFilters,
+  location: ViewerLocation | null,
+) {
+  const searchFilters = {
+    query,
+    ...filters,
+    latitude: location?.latitude,
+    longitude: location?.longitude,
+  };
+
+  return useQuery({
+    queryKey: queryKeys.needs.search(searchFilters),
+    queryFn: () => searchNeeds(searchFilters),
+    enabled: query.length >= 2,
+    placeholderData: keepPreviousData,
   });
 }
 

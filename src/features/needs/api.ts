@@ -218,6 +218,35 @@ export async function listNearbyNeeds(options: NearbyFeedOptions) {
   return rows.map((row) => mapNearbyRow(row, profiles));
 }
 
+export interface SearchNeedsOptions {
+  query: string;
+  categoryId?: number;
+  dealType?: DealType;
+  latitude?: number;
+  longitude?: number;
+  limit?: number;
+}
+
+export async function searchNeeds(options: SearchNeedsOptions) {
+  const { data, error } = await supabase.rpc('search_needs', {
+    p_query: options.query,
+    p_lat: options.latitude,
+    p_lng: options.longitude,
+    p_category_id: options.categoryId,
+    p_deal_type: options.dealType,
+    p_limit: options.limit ?? 30,
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  const rows = data ?? [];
+  const profiles = await listPublicProfiles([...new Set(rows.map((row) => row.user_id))]);
+
+  return rows.map((row) => mapNearbyRow(row, profiles));
+}
+
 export async function getNeedById(needId: string) {
   const { data, error } = await supabase
     .from('needs')

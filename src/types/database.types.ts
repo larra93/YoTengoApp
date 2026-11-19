@@ -546,6 +546,40 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      search_needs: {
+        Args: {
+          p_category_id?: number
+          p_deal_type?: Database["public"]["Enums"]["deal_type"]
+          p_lat?: number
+          p_limit?: number
+          p_lng?: number
+          p_query: string
+        }
+        Returns: {
+          address_label: string
+          author_avatar_url: string
+          author_name: string
+          budget_or_offer_details: string
+          category_icon: string
+          category_id: number
+          category_name: string
+          category_slug: string
+          created_at: string
+          deal_type: Database["public"]["Enums"]["deal_type"]
+          description: string
+          distance_km: number
+          end_date: string
+          id: string
+          latitude: number
+          longitude: number
+          reference_image_url: string
+          start_date: string
+          status: Database["public"]["Enums"]["need_status"]
+          title: string
+          updated_at: string
+          user_id: string
+        }[]
+      }
       send_message: {
         Args: { p_body: string; p_need_id: string }
         Returns: {
