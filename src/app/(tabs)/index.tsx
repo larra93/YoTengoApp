@@ -188,12 +188,22 @@ export default function ExploreScreen() {
           contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}
         >
           {DEAL_FILTERS.map((item) => {
-            const active = dealType === item.value;
+            const active =
+              item.value === undefined
+                ? dealType === undefined && categoryId === undefined
+                : dealType === item.value;
             return (
               <Pressable
                 key={item.label}
                 className={`rounded-full border px-3 py-2 ${active ? 'border-brand bg-brand-soft' : 'border-line bg-surface'}`}
-                onPress={() => setDealType(item.value)}
+                onPress={() => {
+                  if (item.value === undefined) {
+                    setDealType(undefined);
+                    setCategoryId(undefined);
+                  } else {
+                    setDealType(item.value);
+                  }
+                }}
               >
                 <AppText
                   className={`text-xs font-bold ${active ? 'text-brand-dark' : 'text-slate-600'}`}
@@ -274,6 +284,23 @@ export default function ExploreScreen() {
                 onPress={() => router.push('/publish')}
               >
                 <AppText className="text-xs font-bold text-white">Publicar pedido</AppText>
+              </Pressable>
+            </View>
+          ) : needs.length === 0 && (categoryId !== undefined || dealType !== undefined) ? (
+            <View className="items-center gap-2 rounded-card border border-dashed border-slate-300 bg-surface px-6 py-10">
+              <Ionicons name="filter-outline" size={26} color={palette.placeholder} />
+              <AppText variant="subtitle">No hay pedidos con estos filtros</AppText>
+              <AppText variant="caption" className="text-center">
+                Prueba otra combinación o revisa todos los pedidos abiertos.
+              </AppText>
+              <Pressable
+                className="mt-1 rounded-full bg-brand px-4 py-2"
+                onPress={() => {
+                  setDealType(undefined);
+                  setCategoryId(undefined);
+                }}
+              >
+                <AppText className="text-xs font-bold text-white">Ver todos</AppText>
               </Pressable>
             </View>
           ) : needs.length > 0 ? (
